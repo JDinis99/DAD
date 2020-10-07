@@ -11,10 +11,20 @@
   <ItemGroup>
     <Protobuf Include="Protos\giga.proto" />
     <Protobuf Include="Protos\greet.proto" GrpcServices="Both" />
+	<Protobuf Include="Protos\propagate.proto" GrpcServices="Both" />
+
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Grpc.AspNetCore" Version="2.27.0" />
+    <PackageReference Include="Grpc.AspNetCore" Version="2.32.0" />
+    <PackageReference Include="Grpc.Net.Client" Version="2.32.0" />
+    <PackageReference Include="Grpc.Tools" Version="2.32.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Exceptions\" />
+	<Folder Include="Scripts\" />
+	<Folder Include="Domain\" />
   </ItemGroup>
 
 </Project>

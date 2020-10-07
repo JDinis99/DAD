@@ -12,37 +12,32 @@ namespace GigaStore.Services
 
         private readonly ILogger<GigaService> _logger;
         private GigaStorage _gigaStorage;
-        // TODO definir instancias
-        private int instance;
-        private bool _virginService = true;
 
         public GigaService(ILogger<GigaService> logger)
         {
             _logger = logger;
-            _gigaStorage = new GigaStorage();
+            _gigaStorage = GigaStorage.GetGigaStorage();
         }
 
         public override Task<ReadReply> Read(ReadRequest request, ServerCallContext context)
         {
-            Console.WriteLine("VIRGIN SERVICE: " + _virginService);
-            // TODO verificar instancia
-            string value = _gigaStorage.read(request.PartitionId, request.ObjectId);
+            Console.WriteLine("Client contacted server " + request.ServerId + " and reached " + _gigaStorage.GetServerId());
+
+            string value = _gigaStorage.Read(request.PartitionId, request.ObjectId);
             return Task.FromResult(new ReadReply
             {
                 Value = value
             });
         }
 
-        public override Task<WriteReply> Write(WriteRequest request, ServerCallContext context)
+        public override async Task<WriteReply> Write(WriteRequest request, ServerCallContext context)
         {
-            _virginService = false;
-            Console.WriteLine("VIRGIN SERVICE: " + _virginService);
-            // TODO verificar instancia
-            _gigaStorage.write(request.PartitionId, request.ObjectId, request.Value);
-            return Task.FromResult(new WriteReply
+            // TODO verificar o server
+            await _gigaStorage.WriteAsync(request.PartitionId, request.ObjectId, request.Value);
+            return new WriteReply
             {
                 // Empty message as ack
-            });
+            };
 
         }
     }

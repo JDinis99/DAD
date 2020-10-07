@@ -4,7 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 
 namespace GigaStore
 {
@@ -21,6 +23,13 @@ namespace GigaStore
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
+                    string url = "https://localhost:500" + args[0];
+                    GigaStorage giga = GigaStorage.GetGigaStorage();
+                    webBuilder.UseUrls(url);
+
+                    giga.SetServerId(Int32.Parse(args[0]));
+                    giga.SetNumberOfServers(Int32.Parse(args[1]));
+
                     webBuilder.UseStartup<Startup>();
                 });
     }

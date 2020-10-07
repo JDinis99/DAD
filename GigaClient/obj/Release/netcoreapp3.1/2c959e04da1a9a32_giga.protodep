@@ -1,0 +1,2 @@
+obj\Release\netcoreapp3.1/Giga.cs \
+obj\Release\netcoreapp3.1/GigaGrpc.cs: ../GigaStore/Protos/giga.proto

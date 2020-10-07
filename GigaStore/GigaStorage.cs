@@ -3,36 +3,85 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Grpc.Net.Client;
+using static GigaStore.Propagate;
 
 namespace GigaStore
 {
     public class GigaStorage
     {
+        private static readonly GigaStorage _instance = new GigaStorage();
         private MultiKeyDictionary<int, int, string> gigaObjects;
-        private bool _virgin = true;
+        private int _serverId;
+        private int _numberOfServers;
+        private GrpcChannel[] _chanels;
+        private PropagateClient[] _clients;
 
-        public GigaStorage()
+
+        private GigaStorage()
         {
             gigaObjects = new MultiKeyDictionary<int, int, string>();
         }
 
-        public void write(int partition_id, int object_id, string value)
+        public static GigaStorage GetGigaStorage()
         {
-            _virgin = false;
-            Console.WriteLine("writing: " + partition_id + " " + object_id + " " + value);
-            gigaObjects.Add(partition_id, object_id, value);
-            Console.WriteLine("WROTE: " + gigaObjects[partition_id][object_id] );
-
-
+            return _instance;
         }
 
-        public string read(int partition_id, int object_id)
+        public void Init ()
+        // Starts the GRPC clients with the other servers
+        {
+            // +1 So the server_id and respective index in the array match
+            _chanels = new GrpcChannel[_numberOfServers + 1];
+            _clients = new PropagateClient[_numberOfServers + 1];
+            var url = "";
+            for (int i = 1; i <= _numberOfServers; i++)
+            {
+                if (i != _serverId)
+                {
+                    url = "https://localhost:500" + i;
+
+                    Console.WriteLine("I: " + i + " URL: " + url);
+
+                    _chanels[i] = GrpcChannel.ForAddress(url);
+                    _clients[i] = new PropagateClient(_chanels[i]);
+                }
+            }
+        }
+
+        public async Task WriteAsync(int partition_id, int object_id, string value)
+        {
+            Init();
+            gigaObjects.Add(partition_id, object_id, value);
+            var propagateRequest = new PropagateRequest { PartitionId = partition_id, ObjectId = object_id, Value = value };
+            int interval =_numberOfServers / 2;
+            Console.WriteLine("Interval: " + interval);
+
+            for (int i = 1; i <=interval; i++)
+            {
+                propagateRequest = new PropagateRequest { PartitionId = partition_id, ObjectId = object_id, Value = value };
+                var serverID = _serverId + i;
+                if (serverID > _numberOfServers)
+                {
+                    serverID = serverID - _numberOfServers;
+                }
+                Console.WriteLine("ServerID: " + serverID);
+                await _clients[serverID].PropagateServersAsync(propagateRequest);
+                Console.WriteLine("Value Propagated");
+
+            }
+        }
+
+        public void Store(int partition_id, int object_id, string value)
+        {
+            gigaObjects.Add(partition_id, object_id, value);
+        }
+
+        public string Read(int partition_id, int object_id)
         {
             string value;
-            Console.WriteLine("Virgin: " + _virgin);
             try
             {
-                Console.WriteLine("Reading: " + gigaObjects[partition_id][object_id]);
                 value = gigaObjects[partition_id][object_id];
             }
             catch (KeyNotFoundException)
@@ -41,51 +90,22 @@ namespace GigaStore
             }
             return value;
         }
+
+        public void SetServerId(int serverId)
+        {
+            _serverId = serverId;
+        }
+
+        public int GetServerId()
+        {
+            return _serverId;
+        }
+
+        public void SetNumberOfServers(int numberOfServers)
+        {
+            _numberOfServers = numberOfServers;
+        }
     }
 
-    public class MultiKeyDictionary<K1, K2, V> : Dictionary<K1, Dictionary<K2, V>>
-    {
-
-        public V this[K1 key1, K2 key2]
-        {
-            get
-            {
-                if (!ContainsKey(key1) || !this[key1].ContainsKey(key2))
-                    throw new ArgumentOutOfRangeException();
-                return base[key1][key2];
-            }
-            set
-            {
-                if (!ContainsKey(key1))
-                    this[key1] = new Dictionary<K2, V>();
-                this[key1][key2] = value;
-            }
-        }
-
-        public void Add(K1 key1, K2 key2, V value)
-        {
-            if (!ContainsKey(key1))
-                this[key1] = new Dictionary<K2, V>();
-            this[key1][key2] = value;
-            Console.WriteLine("ADD " + key1 + " " + key2 + " " + value);
-            Console.WriteLine("ADDED " + this[key1][key2]);
-        }
-
-        public bool ContainsKey(K1 key1, K2 key2)
-        {
-            return base.ContainsKey(key1) && this[key1].ContainsKey(key2);
-        }
-
-        public new IEnumerable<V> Values
-        {
-            get
-            {
-                return from baseDict in base.Values
-                       from baseKey in baseDict.Keys
-                       select baseDict[baseKey];
-            }
-        }
-
-    }
 }
       

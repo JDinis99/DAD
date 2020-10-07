@@ -42,7 +42,6 @@ C:\Users\JDinis99\IST\DAD\GigaStore\bin\Debug\netcoreapp3.1\Grpc.Core.Api.dll
 C:\Users\JDinis99\IST\DAD\GigaStore\bin\Debug\netcoreapp3.1\Grpc.Net.Client.dll
 C:\Users\JDinis99\IST\DAD\GigaStore\bin\Debug\netcoreapp3.1\Grpc.Net.ClientFactory.dll
 C:\Users\JDinis99\IST\DAD\GigaStore\bin\Debug\netcoreapp3.1\Grpc.Net.Common.dll
-C:\Users\JDinis99\IST\DAD\GigaStore\obj\Debug\netcoreapp3.1\GigaStore.csprojAssemblyReference.cache
 C:\Users\JDinis99\IST\DAD\GigaStore\obj\Debug\netcoreapp3.1\GigaStore.AssemblyInfoInputs.cache
 C:\Users\JDinis99\IST\DAD\GigaStore\obj\Debug\netcoreapp3.1\GigaStore.AssemblyInfo.cs
 C:\Users\JDinis99\IST\DAD\GigaStore\obj\Debug\netcoreapp3.1\GigaStore.csproj.CoreCompileInputs.cache
@@ -54,3 +53,4 @@ C:\Users\JDinis99\IST\DAD\GigaStore\obj\Debug\netcoreapp3.1\staticwebassets\Giga
 C:\Users\JDinis99\IST\DAD\GigaStore\obj\Debug\netcoreapp3.1\GigaStore.dll
 C:\Users\JDinis99\IST\DAD\GigaStore\obj\Debug\netcoreapp3.1\GigaStore.pdb
 C:\Users\JDinis99\IST\DAD\GigaStore\obj\Debug\netcoreapp3.1\GigaStore.genruntimeconfig.cache
+C:\Users\JDinis99\IST\DAD\GigaStore\obj\Debug\netcoreapp3.1\GigaStore.csprojAssemblyReference.cache

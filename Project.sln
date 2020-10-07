@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30523.141
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GigaStore", "GigaStore\GigaStore.csproj", "{768CF3FA-23D8-4BFC-AA0D-BF4CAEEBC54E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GigaStore", "GigaStore\GigaStore.csproj", "{768CF3FA-23D8-4BFC-AA0D-BF4CAEEBC54E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GigaClient", "GigaClient\GigaClient.csproj", "{6FBBBE73-0720-4707-8069-DA05EBAF6825}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GigaClient", "GigaClient\GigaClient.csproj", "{6FBBBE73-0720-4707-8069-DA05EBAF6825}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
