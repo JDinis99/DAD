@@ -26,17 +26,18 @@ namespace GigaStore {
           string.Concat(
             "ChZQcm90b3MvcHJvcGFnYXRlLnByb3RvIkoKEFByb3BhZ2F0ZVJlcXVlc3QS",
             "FAoMcGFydGl0aW9uX2lkGAEgASgFEhEKCW9iamVjdF9pZBgCIAEoBRINCgV2",
-            "YWx1ZRgDIAEoCSIQCg5Qcm9wYWdhdGVSZXBseSIjCgtMb2NrUmVxdWVzdBIU",
-            "CgxwYXJ0aXRpb25faWQYASABKAUiCwoJTG9ja1JlcGx5MmwKCVByb3BhZ2F0",
-            "ZRI2ChBQcm9wYWdhdGVTZXJ2ZXJzEhEuUHJvcGFnYXRlUmVxdWVzdBoPLlBy",
-            "b3BhZ2F0ZVJlcGx5EicKC0xvY2tTZXJ2ZXJzEgwuTG9ja1JlcXVlc3QaCi5M",
-            "b2NrUmVwbHlCDKoCCUdpZ2FTdG9yZWIGcHJvdG8z"));
+            "YWx1ZRgDIAEoCSIQCg5Qcm9wYWdhdGVSZXBseSI2CgtMb2NrUmVxdWVzdBIU",
+            "CgxwYXJ0aXRpb25faWQYASABKAUSEQoJb2JqZWN0X2lkGAIgASgFIgsKCUxv",
+            "Y2tSZXBseTJsCglQcm9wYWdhdGUSNgoQUHJvcGFnYXRlU2VydmVycxIRLlBy",
+            "b3BhZ2F0ZVJlcXVlc3QaDy5Qcm9wYWdhdGVSZXBseRInCgtMb2NrU2VydmVy",
+            "cxIMLkxvY2tSZXF1ZXN0GgouTG9ja1JlcGx5QgyqAglHaWdhU3RvcmViBnBy",
+            "b3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::GigaStore.PropagateRequest), global::GigaStore.PropagateRequest.Parser, new[]{ "PartitionId", "ObjectId", "Value" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::GigaStore.PropagateReply), global::GigaStore.PropagateReply.Parser, null, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::GigaStore.LockRequest), global::GigaStore.LockRequest.Parser, new[]{ "PartitionId" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::GigaStore.LockRequest), global::GigaStore.LockRequest.Parser, new[]{ "PartitionId", "ObjectId" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::GigaStore.LockReply), global::GigaStore.LockReply.Parser, null, null, null, null, null)
           }));
     }
@@ -454,6 +455,7 @@ namespace GigaStore {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public LockRequest(LockRequest other) : this() {
       partitionId_ = other.partitionId_;
+      objectId_ = other.objectId_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -473,6 +475,17 @@ namespace GigaStore {
       }
     }
 
+    /// <summary>Field number for the "object_id" field.</summary>
+    public const int ObjectIdFieldNumber = 2;
+    private int objectId_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int ObjectId {
+      get { return objectId_; }
+      set {
+        objectId_ = value;
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
       return Equals(other as LockRequest);
@@ -487,6 +500,7 @@ namespace GigaStore {
         return true;
       }
       if (PartitionId != other.PartitionId) return false;
+      if (ObjectId != other.ObjectId) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -494,6 +508,7 @@ namespace GigaStore {
     public override int GetHashCode() {
       int hash = 1;
       if (PartitionId != 0) hash ^= PartitionId.GetHashCode();
+      if (ObjectId != 0) hash ^= ObjectId.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -514,6 +529,10 @@ namespace GigaStore {
         output.WriteRawTag(8);
         output.WriteInt32(PartitionId);
       }
+      if (ObjectId != 0) {
+        output.WriteRawTag(16);
+        output.WriteInt32(ObjectId);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -527,6 +546,10 @@ namespace GigaStore {
         output.WriteRawTag(8);
         output.WriteInt32(PartitionId);
       }
+      if (ObjectId != 0) {
+        output.WriteRawTag(16);
+        output.WriteInt32(ObjectId);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -538,6 +561,9 @@ namespace GigaStore {
       int size = 0;
       if (PartitionId != 0) {
         size += 1 + pb::CodedOutputStream.ComputeInt32Size(PartitionId);
+      }
+      if (ObjectId != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(ObjectId);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -552,6 +578,9 @@ namespace GigaStore {
       }
       if (other.PartitionId != 0) {
         PartitionId = other.PartitionId;
+      }
+      if (other.ObjectId != 0) {
+        ObjectId = other.ObjectId;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -571,6 +600,10 @@ namespace GigaStore {
             PartitionId = input.ReadInt32();
             break;
           }
+          case 16: {
+            ObjectId = input.ReadInt32();
+            break;
+          }
         }
       }
     #endif
@@ -587,6 +620,10 @@ namespace GigaStore {
             break;
           case 8: {
             PartitionId = input.ReadInt32();
+            break;
+          }
+          case 16: {
+            ObjectId = input.ReadInt32();
             break;
           }
         }

@@ -31,6 +31,15 @@ namespace GigaStore.Services
 
         }
         
+        public override Task<LockReply> LockServers(LockRequest request, ServerCallContext context)
+        {
+            _gigaStorage.Lock(request.PartitionId, request.ObjectId);
+            return Task.FromResult(new LockReply
+            {
+                // Empty message as ack
+            });
+        }
+        
     }
 }
 
