@@ -13,7 +13,7 @@ namespace GigaStore
     {
         private static readonly GigaStorage _instance = new GigaStorage();
         private MultiKeyDictionary<int, int, string> _gigaObjects;
-        private MultiKeyDictionary<int, int, Semaphore> _mutexObjects;
+        private MultiKeyDictionary<int, int, Semaphore> _semObjects;
         private int _serverId;
         private int _numberOfServers;
         private GrpcChannel[] _chanels;
@@ -23,7 +23,7 @@ namespace GigaStore
         private GigaStorage()
         {
             _gigaObjects = new MultiKeyDictionary<int, int, string>();
-            _mutexObjects = new MultiKeyDictionary<int, int, Semaphore>();
+            _semObjects = new MultiKeyDictionary<int, int, Semaphore>();
         }
 
         public static GigaStorage GetGigaStorage()
@@ -59,23 +59,28 @@ namespace GigaStore
             var lockRequest = new LockRequest { PartitionId = partition_id,  ObjectId = object_id }; ;
             int interval =_numberOfServers / 2;
             Console.WriteLine("Interval: " + interval);
+            int serverID;
 
-            for (int i = 1; i <= _numberOfServers; i++)
+            for (int i = 1; i <= interval; i++)
             {
-                if (i != _serverId)
+                serverID = _serverId + i;
+
+                if (serverID > _numberOfServers)
                 {
-                    await _clients[i].LockServersAsync(lockRequest);
+                    serverID = serverID - _numberOfServers;
                 }
+
+                await _clients[serverID].LockServersAsync(lockRequest);
 
             }
 
             _gigaObjects.Add(partition_id, object_id, value);
-            _mutexObjects.Add(partition_id, object_id, new Semaphore(1,1));
+            _semObjects.Add(partition_id, object_id, new Semaphore(1,1));
 
             for (int i = 1; i <=interval; i++)
             {
                 propagateRequest = new PropagateRequest { PartitionId = partition_id, ObjectId = object_id, Value = value };
-                var serverID = _serverId + i;
+                serverID = _serverId + i;
                 if (serverID > _numberOfServers)
                 {
                     serverID = serverID - _numberOfServers;
@@ -92,12 +97,12 @@ namespace GigaStore
 
             try
             {
-                _mutexObjects[partition_id][object_id].WaitOne();
+                _semObjects[partition_id][object_id].WaitOne();
             }
             catch (KeyNotFoundException)
             {
-                _mutexObjects.Add(partition_id, object_id, new Semaphore(1,1));
-                _mutexObjects[partition_id][object_id].WaitOne();
+                _semObjects.Add(partition_id, object_id, new Semaphore(1,1));
+                _semObjects[partition_id][object_id].WaitOne();
 
             }
             Console.WriteLine("LOCKED partition: " + partition_id + " object: " + object_id);
@@ -106,7 +111,9 @@ namespace GigaStore
         public void Store(int partition_id, int object_id, string value)
         {
             _gigaObjects.Add(partition_id, object_id, value);
-            _mutexObjects[partition_id][object_id].Release();
+            _semObjects[partition_id][object_id].Release();
+
+            Console.WriteLine("UNLOCKED partition: " + partition_id + " object: " + object_id);
         }
 
 
@@ -115,7 +122,11 @@ namespace GigaStore
             string value;
             try
             {
+                Console.WriteLine("LOCKED READ partition: " + partition_id + " object: " + object_id);
+                _semObjects[partition_id][object_id].WaitOne();
                 value = _gigaObjects[partition_id][object_id];
+                _semObjects[partition_id][object_id].Release();
+                Console.WriteLine("UNLOCKED READ partition: " + partition_id + " object: " + object_id);
             }
             catch (KeyNotFoundException)
             {
