@@ -5,6 +5,10 @@ option csharp_namespace = "GigaStore";
 service Propagate {
   rpc PropagateServers (PropagateRequest) returns (PropagateReply);
   rpc LockServers (LockRequest) returns (LockReply);
+
+  rpc PropagateServersAdvanced (PropagateRequest) returns (PropagateReply);
+  rpc ChangeMaster (ChangeRequest) returns (ChangeReply);
+  rpc ChangeMasterNotification (ChangeRequest) returns (ChangeReply);
 }
 
 
@@ -24,5 +28,13 @@ message LockRequest {
 }
 
 message LockReply {
+
+}
+
+message ChangeRequest {
+	int32 server_id = 1;
+}
+
+message ChangeReply {
 
 }

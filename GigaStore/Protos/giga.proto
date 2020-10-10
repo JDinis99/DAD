@@ -5,6 +5,10 @@ option csharp_namespace = "GigaStore";
 service Giga {
   rpc Read (ReadRequest) returns (ReadReply);
   rpc Write (WriteRequest) returns (WriteReply);
+
+  rpc ReadAdvanced (ReadRequest) returns (ReadReply);
+  rpc WriteAdvanced (WriteRequest) returns (WriteReply);
+  rpc CheckStatus (CheckRequest) returns (CheckReply);
 }
 
 message ReadRequest {
@@ -25,4 +29,12 @@ message WriteRequest {
 
 message WriteReply {
 	
+}
+
+message CheckRequest {
+
+}
+
+message CheckReply {
+
 }

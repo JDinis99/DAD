@@ -39,7 +39,40 @@ namespace GigaStore.Services
                 // Empty message as ack
             });
         }
-        
+
+        public override Task<PropagateReply> PropagateServersAdvanced(PropagateRequest request, ServerCallContext context)
+        {
+            Console.WriteLine("Propagated Advanced to Server: " + _gigaStorage.GetServerId());
+
+            _gigaStorage.StoreAdvanced(request.PartitionId, request.ObjectId, request.Value);
+            return Task.FromResult(new PropagateReply
+            {
+                // Empty message as ack
+            });
+
+        }
+
+        public override Task<ChangeReply> ChangeMaster(ChangeRequest request, ServerCallContext context)
+        {
+            Console.WriteLine("Change Master from server: " + request.ServerId);
+
+            return Task.FromResult(new ChangeReply
+            {
+                // Empty message as ack
+            });
+
+        }
+
+        public override Task<ChangeReply> ChangeMasterNotification(ChangeRequest request, ServerCallContext context)
+        {
+            Console.WriteLine("Change Master Notification from server: " + request.ServerId);
+
+            return Task.FromResult(new ChangeReply
+            {
+                // Empty message as ack
+            });
+
+        }
     }
 }
 

@@ -46,6 +46,8 @@ namespace GigaStore {
     static readonly grpc::Marshaller<global::GigaStore.PropagateReply> __Marshaller_PropagateReply = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::GigaStore.PropagateReply.Parser));
     static readonly grpc::Marshaller<global::GigaStore.LockRequest> __Marshaller_LockRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::GigaStore.LockRequest.Parser));
     static readonly grpc::Marshaller<global::GigaStore.LockReply> __Marshaller_LockReply = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::GigaStore.LockReply.Parser));
+    static readonly grpc::Marshaller<global::GigaStore.ChangeRequest> __Marshaller_ChangeRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::GigaStore.ChangeRequest.Parser));
+    static readonly grpc::Marshaller<global::GigaStore.ChangeReply> __Marshaller_ChangeReply = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::GigaStore.ChangeReply.Parser));
 
     static readonly grpc::Method<global::GigaStore.PropagateRequest, global::GigaStore.PropagateReply> __Method_PropagateServers = new grpc::Method<global::GigaStore.PropagateRequest, global::GigaStore.PropagateReply>(
         grpc::MethodType.Unary,
@@ -60,6 +62,27 @@ namespace GigaStore {
         "LockServers",
         __Marshaller_LockRequest,
         __Marshaller_LockReply);
+
+    static readonly grpc::Method<global::GigaStore.PropagateRequest, global::GigaStore.PropagateReply> __Method_PropagateServersAdvanced = new grpc::Method<global::GigaStore.PropagateRequest, global::GigaStore.PropagateReply>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "PropagateServersAdvanced",
+        __Marshaller_PropagateRequest,
+        __Marshaller_PropagateReply);
+
+    static readonly grpc::Method<global::GigaStore.ChangeRequest, global::GigaStore.ChangeReply> __Method_ChangeMaster = new grpc::Method<global::GigaStore.ChangeRequest, global::GigaStore.ChangeReply>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "ChangeMaster",
+        __Marshaller_ChangeRequest,
+        __Marshaller_ChangeReply);
+
+    static readonly grpc::Method<global::GigaStore.ChangeRequest, global::GigaStore.ChangeReply> __Method_ChangeMasterNotification = new grpc::Method<global::GigaStore.ChangeRequest, global::GigaStore.ChangeReply>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "ChangeMasterNotification",
+        __Marshaller_ChangeRequest,
+        __Marshaller_ChangeReply);
 
     /// <summary>Service descriptor</summary>
     public static global::Google.Protobuf.Reflection.ServiceDescriptor Descriptor
@@ -77,6 +100,21 @@ namespace GigaStore {
       }
 
       public virtual global::System.Threading.Tasks.Task<global::GigaStore.LockReply> LockServers(global::GigaStore.LockRequest request, grpc::ServerCallContext context)
+      {
+        throw new grpc::RpcException(new grpc::Status(grpc::StatusCode.Unimplemented, ""));
+      }
+
+      public virtual global::System.Threading.Tasks.Task<global::GigaStore.PropagateReply> PropagateServersAdvanced(global::GigaStore.PropagateRequest request, grpc::ServerCallContext context)
+      {
+        throw new grpc::RpcException(new grpc::Status(grpc::StatusCode.Unimplemented, ""));
+      }
+
+      public virtual global::System.Threading.Tasks.Task<global::GigaStore.ChangeReply> ChangeMaster(global::GigaStore.ChangeRequest request, grpc::ServerCallContext context)
+      {
+        throw new grpc::RpcException(new grpc::Status(grpc::StatusCode.Unimplemented, ""));
+      }
+
+      public virtual global::System.Threading.Tasks.Task<global::GigaStore.ChangeReply> ChangeMasterNotification(global::GigaStore.ChangeRequest request, grpc::ServerCallContext context)
       {
         throw new grpc::RpcException(new grpc::Status(grpc::StatusCode.Unimplemented, ""));
       }
@@ -138,6 +176,54 @@ namespace GigaStore {
       {
         return CallInvoker.AsyncUnaryCall(__Method_LockServers, null, options, request);
       }
+      public virtual global::GigaStore.PropagateReply PropagateServersAdvanced(global::GigaStore.PropagateRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return PropagateServersAdvanced(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      public virtual global::GigaStore.PropagateReply PropagateServersAdvanced(global::GigaStore.PropagateRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_PropagateServersAdvanced, null, options, request);
+      }
+      public virtual grpc::AsyncUnaryCall<global::GigaStore.PropagateReply> PropagateServersAdvancedAsync(global::GigaStore.PropagateRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return PropagateServersAdvancedAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      public virtual grpc::AsyncUnaryCall<global::GigaStore.PropagateReply> PropagateServersAdvancedAsync(global::GigaStore.PropagateRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_PropagateServersAdvanced, null, options, request);
+      }
+      public virtual global::GigaStore.ChangeReply ChangeMaster(global::GigaStore.ChangeRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return ChangeMaster(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      public virtual global::GigaStore.ChangeReply ChangeMaster(global::GigaStore.ChangeRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_ChangeMaster, null, options, request);
+      }
+      public virtual grpc::AsyncUnaryCall<global::GigaStore.ChangeReply> ChangeMasterAsync(global::GigaStore.ChangeRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return ChangeMasterAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      public virtual grpc::AsyncUnaryCall<global::GigaStore.ChangeReply> ChangeMasterAsync(global::GigaStore.ChangeRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_ChangeMaster, null, options, request);
+      }
+      public virtual global::GigaStore.ChangeReply ChangeMasterNotification(global::GigaStore.ChangeRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return ChangeMasterNotification(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      public virtual global::GigaStore.ChangeReply ChangeMasterNotification(global::GigaStore.ChangeRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_ChangeMasterNotification, null, options, request);
+      }
+      public virtual grpc::AsyncUnaryCall<global::GigaStore.ChangeReply> ChangeMasterNotificationAsync(global::GigaStore.ChangeRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return ChangeMasterNotificationAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      public virtual grpc::AsyncUnaryCall<global::GigaStore.ChangeReply> ChangeMasterNotificationAsync(global::GigaStore.ChangeRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_ChangeMasterNotification, null, options, request);
+      }
       /// <summary>Creates a new instance of client from given <c>ClientBaseConfiguration</c>.</summary>
       protected override PropagateClient NewInstance(ClientBaseConfiguration configuration)
       {
@@ -151,7 +237,10 @@ namespace GigaStore {
     {
       return grpc::ServerServiceDefinition.CreateBuilder()
           .AddMethod(__Method_PropagateServers, serviceImpl.PropagateServers)
-          .AddMethod(__Method_LockServers, serviceImpl.LockServers).Build();
+          .AddMethod(__Method_LockServers, serviceImpl.LockServers)
+          .AddMethod(__Method_PropagateServersAdvanced, serviceImpl.PropagateServersAdvanced)
+          .AddMethod(__Method_ChangeMaster, serviceImpl.ChangeMaster)
+          .AddMethod(__Method_ChangeMasterNotification, serviceImpl.ChangeMasterNotification).Build();
     }
 
     /// <summary>Register service method with a service binder with or without implementation. Useful when customizing the  service binding logic.
@@ -162,6 +251,9 @@ namespace GigaStore {
     {
       serviceBinder.AddMethod(__Method_PropagateServers, serviceImpl == null ? null : new grpc::UnaryServerMethod<global::GigaStore.PropagateRequest, global::GigaStore.PropagateReply>(serviceImpl.PropagateServers));
       serviceBinder.AddMethod(__Method_LockServers, serviceImpl == null ? null : new grpc::UnaryServerMethod<global::GigaStore.LockRequest, global::GigaStore.LockReply>(serviceImpl.LockServers));
+      serviceBinder.AddMethod(__Method_PropagateServersAdvanced, serviceImpl == null ? null : new grpc::UnaryServerMethod<global::GigaStore.PropagateRequest, global::GigaStore.PropagateReply>(serviceImpl.PropagateServersAdvanced));
+      serviceBinder.AddMethod(__Method_ChangeMaster, serviceImpl == null ? null : new grpc::UnaryServerMethod<global::GigaStore.ChangeRequest, global::GigaStore.ChangeReply>(serviceImpl.ChangeMaster));
+      serviceBinder.AddMethod(__Method_ChangeMasterNotification, serviceImpl == null ? null : new grpc::UnaryServerMethod<global::GigaStore.ChangeRequest, global::GigaStore.ChangeReply>(serviceImpl.ChangeMasterNotification));
     }
 
   }

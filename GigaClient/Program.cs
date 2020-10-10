@@ -19,69 +19,154 @@ namespace GigaClient
             var channel3 = GrpcChannel.ForAddress("https://localhost:5003");
             var client3 = new Giga.GigaClient(channel3);
 
+            var channel4 = GrpcChannel.ForAddress("https://localhost:5004");
+            var client4 = new Giga.GigaClient(channel4);
+
+            var channel5 = GrpcChannel.ForAddress("https://localhost:5005");
+            var client5 = new Giga.GigaClient(channel5);
+
 
 
             var writeRequest1 = new WriteRequest { PartitionId = 1, ObjectId = 1, Value = "Praise the Sun" };
-            var writeRequest12 = new WriteRequest { PartitionId = 1, ObjectId = 1, Value = "Praise the Sun 222222" };
-
-            await client1.WriteAsync(writeRequest1);
+            await client1.WriteAdvancedAsync(writeRequest1);
             Console.WriteLine("Value Stored 1");
 
-            await client1.WriteAsync(writeRequest12);
-            Console.WriteLine("Value Stored 12");
+            var writeRequest2 = new WriteRequest { PartitionId = 2, ObjectId = 1, Value = "Nuclear Launch codes" };
+            await client2.WriteAdvancedAsync(writeRequest2);
+            Console.WriteLine("Value Stored 2");
 
-            var readRequest1 = new ReadRequest { PartitionId = 1, ObjectId = 1, ServerId = 1 };
-            var readReply1 = await client1.ReadAsync(readRequest1);
-            Console.WriteLine("value 1 from server 1: " + readReply1.Value);
-
-            System.Threading.Thread.Sleep(1000);
-            
-             var writeRequest2 = new WriteRequest { PartitionId = 2, ObjectId = 1, Value = "Nuclear Launch codes" };
-             await client2.WriteAsync(writeRequest2);
-             Console.WriteLine("Value Stored 2");
-
-
-            var readRequest21 = new ReadRequest { PartitionId = 1, ObjectId = 1, ServerId = 2 };
-            var readReply21 = await client2.ReadAsync(readRequest21);
-            Console.WriteLine("value 1 from server 2: " + readReply21.Value);
-
-            var readRequest22 = new ReadRequest { PartitionId = 2, ObjectId = 1, ServerId = 2 };
-            var readReply22 = await client2.ReadAsync(readRequest22);
-            Console.WriteLine("value 2 from server 2: " + readReply22.Value);
-
-            System.Threading.Thread.Sleep(1000);
-            
             var writeRequest3 = new WriteRequest { PartitionId = 3, ObjectId = 1, Value = "Very confidential information" };
-            await client3.WriteAsync(writeRequest3);
+            await client3.WriteAdvancedAsync(writeRequest3);
             Console.WriteLine("Value Stored 3");
 
-            var readRequest31 = new ReadRequest { PartitionId = 1, ObjectId = 1, ServerId = 3 };
-            var readReply31 = await client3.ReadAsync(readRequest31);
-            Console.WriteLine("value 1 from server 3: " + readReply31.Value);
+            var writeRequest4 = new WriteRequest { PartitionId = 4, ObjectId = 1, Value = "Homework folder" };
+            await client4.WriteAdvancedAsync(writeRequest4);
+            Console.WriteLine("Value Stored 4");
 
-            var readRequest32 = new ReadRequest { PartitionId = 2, ObjectId = 1, ServerId = 3 };
-            var readReply32 = await client3.ReadAsync(readRequest32);
-            Console.WriteLine("value 2 from server 3: " + readReply32.Value);
+            var writeRequest5 = new WriteRequest { PartitionId = 5, ObjectId = 1, Value = "Hot Milf in your are ad" };
+            await client5.WriteAdvancedAsync(writeRequest5);
+            Console.WriteLine("Value Stored 5");
 
-            var readRequest33 = new ReadRequest { PartitionId = 3, ObjectId = 1, ServerId = 3 };
-            var readReply33 = await client3.ReadAsync(readRequest33);
-            Console.WriteLine("value 1 from server 3: " + readReply33.Value);
+            Console.WriteLine("5 seconds to crash");
+            System.Threading.Thread.Sleep(5000);
 
+
+            Console.WriteLine("");
+            var readRequest1 = new ReadRequest { PartitionId = 1, ObjectId = 1, ServerId = 1 };
+            var readRequest2 = new ReadRequest { PartitionId = 2, ObjectId = 1, ServerId = 1 };
+            var readRequest3 = new ReadRequest { PartitionId = 3, ObjectId = 1, ServerId = 1 };
+            var readRequest4 = new ReadRequest { PartitionId = 4, ObjectId = 1, ServerId = 1 };
+            var readRequest5 = new ReadRequest { PartitionId = 5, ObjectId = 1, ServerId = 1 };
+
+
+            Console.WriteLine("Value From Server 1");
+
+            var readReply11 = await client1.ReadAdvancedAsync(readRequest1);
+            Console.WriteLine("value 1: " + readReply11.Value);
+
+            var readReply12 = await client1.ReadAdvancedAsync(readRequest2);
+            Console.WriteLine("value 2: " + readReply12.Value);
+
+            var readReply13 = await client1.ReadAdvancedAsync(readRequest3);
+            Console.WriteLine("value 3: " + readReply13.Value);
+
+            var readReply14 = await client1.ReadAdvancedAsync(readRequest4);
+            Console.WriteLine("value 4: " + readReply14.Value);
+
+            var readReply15 = await client1.ReadAdvancedAsync(readRequest5);
+            Console.WriteLine("value 5: " + readReply15.Value);
 
             System.Threading.Thread.Sleep(1000);
+            Console.WriteLine("");
 
-            var readRequest11 = new ReadRequest { PartitionId = 1, ObjectId = 1, ServerId = 1 };
-            var readReply11 = await client1.ReadAsync(readRequest11);
-            Console.WriteLine("value 1 from server 1: " + readReply11.Value);
 
-            var readRequest12 = new ReadRequest { PartitionId = 2, ObjectId = 1, ServerId = 1 };
-            var readReply12 = await client1.ReadAsync(readRequest12);
-            Console.WriteLine("value 2 from server 1: " + readReply12.Value);
 
-            var readRequest13 = new ReadRequest { PartitionId = 3, ObjectId = 1, ServerId = 1 };
-            var readReply13 = await client1.ReadAsync(readRequest13);
-            Console.WriteLine("value 3 from server 1: " + readReply13.Value);
-            
+
+            Console.WriteLine("Value From Server 2");
+
+            var readReply21 = await client2.ReadAdvancedAsync(readRequest1);
+            Console.WriteLine("value 1: " + readReply21.Value);
+
+            var readReply22 = await client2.ReadAdvancedAsync(readRequest2);
+            Console.WriteLine("value 2: " + readReply22.Value);
+
+            var readReply23 = await client2.ReadAdvancedAsync(readRequest3);
+            Console.WriteLine("value 3: " + readReply23.Value);
+
+            var readReply24 = await client2.ReadAdvancedAsync(readRequest4);
+            Console.WriteLine("value 4: " + readReply24.Value);
+
+            var readReply25 = await client2.ReadAdvancedAsync(readRequest5);
+            Console.WriteLine("value 5: " + readReply25.Value);
+
+            System.Threading.Thread.Sleep(1000);
+            Console.WriteLine("");
+
+
+
+            Console.WriteLine("Value From Server 3");
+
+            var readReply31 = await client3.ReadAdvancedAsync(readRequest1);
+            Console.WriteLine("value 1: " + readReply31.Value);
+
+            var readReply32 = await client3.ReadAdvancedAsync(readRequest2);
+            Console.WriteLine("value 2: " + readReply32.Value);
+
+            var readReply33 = await client3.ReadAdvancedAsync(readRequest3);
+            Console.WriteLine("value 3: " + readReply33.Value);
+
+            var readReply34 = await client3.ReadAdvancedAsync(readRequest4);
+            Console.WriteLine("value 4: " + readReply34.Value);
+
+            var readReply35 = await client3.ReadAdvancedAsync(readRequest5);
+            Console.WriteLine("value 5: " + readReply35.Value);
+
+            System.Threading.Thread.Sleep(1000);
+            Console.WriteLine("");
+
+
+            Console.WriteLine("Value From Server 4");
+
+            var readReply41 = await client4.ReadAdvancedAsync(readRequest1);
+            Console.WriteLine("value 1: " + readReply41.Value);
+
+            var readReply42 = await client4.ReadAdvancedAsync(readRequest2);
+            Console.WriteLine("value 2: " + readReply42.Value);
+
+            var readReply43 = await client4.ReadAdvancedAsync(readRequest3);
+            Console.WriteLine("value 3: " + readReply43.Value);
+
+            var readReply44 = await client4.ReadAdvancedAsync(readRequest4);
+            Console.WriteLine("value 4: " + readReply44.Value);
+
+            var readReply45 = await client4.ReadAdvancedAsync(readRequest5);
+            Console.WriteLine("value 5: " + readReply45.Value);
+
+            System.Threading.Thread.Sleep(1000);
+            Console.WriteLine("");
+
+
+
+            Console.WriteLine("Value From Server 5");
+
+            var readReply51 = await client5.ReadAdvancedAsync(readRequest1);
+            Console.WriteLine("value 1: " + readReply51.Value);
+
+            var readReply52 = await client5.ReadAdvancedAsync(readRequest2);
+            Console.WriteLine("value 2: " + readReply52.Value);
+
+            var readReply53 = await client5.ReadAdvancedAsync(readRequest3);
+            Console.WriteLine("value 3: " + readReply53.Value);
+
+            var readReply54 = await client5.ReadAdvancedAsync(readRequest4);
+            Console.WriteLine("value 4: " + readReply54.Value);
+
+            var readReply55 = await client5.ReadAdvancedAsync(readRequest5);
+            Console.WriteLine("value 5: " + readReply55.Value);
+
+            System.Threading.Thread.Sleep(1000);
+            Console.WriteLine("");
+
             Console.ReadLine();
         }
     }

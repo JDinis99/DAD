@@ -30,15 +30,47 @@ namespace GigaStore.Services
             });
         }
 
-        public override async Task<WriteReply> Write(WriteRequest request, ServerCallContext context)
+        public override Task<WriteReply> Write(WriteRequest request, ServerCallContext context)
         {
             // TODO verificar o server
-            await _gigaStorage.WriteAsync(request.PartitionId, request.ObjectId, request.Value);
-            return new WriteReply
+            _gigaStorage.Write(request.PartitionId, request.ObjectId, request.Value);
+            return Task.FromResult(new WriteReply
             {
                 // Empty message as ack
-            };
+            });
+        }
 
+        public override Task<ReadReply> ReadAdvanced(ReadRequest request, ServerCallContext context)
+        {
+            Console.WriteLine("Advanced read");
+
+            string value = _gigaStorage.Read(request.PartitionId, request.ObjectId);
+            return Task.FromResult(new ReadReply
+            {
+                Value = value
+            });
+        }
+
+        public override Task<WriteReply> WriteAdvanced(WriteRequest request, ServerCallContext context)
+        {
+            Console.WriteLine("Advanced write");
+
+            // TODO verificar o server
+            _gigaStorage.Write(request.PartitionId, request.ObjectId, request.Value);
+            return Task.FromResult(new WriteReply
+            {
+                // Empty message as ack
+            });
+
+        }
+
+        public override Task<CheckReply> CheckStatus(CheckRequest request, ServerCallContext context)
+        {
+            Console.WriteLine("Checking status");
+            return Task.FromResult( new CheckReply
+            {
+                // Empty message as ack
+            });
         }
     }
 }

@@ -46,6 +46,8 @@ namespace GigaStore {
     static readonly grpc::Marshaller<global::GigaStore.ReadReply> __Marshaller_ReadReply = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::GigaStore.ReadReply.Parser));
     static readonly grpc::Marshaller<global::GigaStore.WriteRequest> __Marshaller_WriteRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::GigaStore.WriteRequest.Parser));
     static readonly grpc::Marshaller<global::GigaStore.WriteReply> __Marshaller_WriteReply = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::GigaStore.WriteReply.Parser));
+    static readonly grpc::Marshaller<global::GigaStore.CheckRequest> __Marshaller_CheckRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::GigaStore.CheckRequest.Parser));
+    static readonly grpc::Marshaller<global::GigaStore.CheckReply> __Marshaller_CheckReply = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::GigaStore.CheckReply.Parser));
 
     static readonly grpc::Method<global::GigaStore.ReadRequest, global::GigaStore.ReadReply> __Method_Read = new grpc::Method<global::GigaStore.ReadRequest, global::GigaStore.ReadReply>(
         grpc::MethodType.Unary,
@@ -60,6 +62,27 @@ namespace GigaStore {
         "Write",
         __Marshaller_WriteRequest,
         __Marshaller_WriteReply);
+
+    static readonly grpc::Method<global::GigaStore.ReadRequest, global::GigaStore.ReadReply> __Method_ReadAdvanced = new grpc::Method<global::GigaStore.ReadRequest, global::GigaStore.ReadReply>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "ReadAdvanced",
+        __Marshaller_ReadRequest,
+        __Marshaller_ReadReply);
+
+    static readonly grpc::Method<global::GigaStore.WriteRequest, global::GigaStore.WriteReply> __Method_WriteAdvanced = new grpc::Method<global::GigaStore.WriteRequest, global::GigaStore.WriteReply>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "WriteAdvanced",
+        __Marshaller_WriteRequest,
+        __Marshaller_WriteReply);
+
+    static readonly grpc::Method<global::GigaStore.CheckRequest, global::GigaStore.CheckReply> __Method_CheckStatus = new grpc::Method<global::GigaStore.CheckRequest, global::GigaStore.CheckReply>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "CheckStatus",
+        __Marshaller_CheckRequest,
+        __Marshaller_CheckReply);
 
     /// <summary>Service descriptor</summary>
     public static global::Google.Protobuf.Reflection.ServiceDescriptor Descriptor
@@ -121,6 +144,54 @@ namespace GigaStore {
       public virtual grpc::AsyncUnaryCall<global::GigaStore.WriteReply> WriteAsync(global::GigaStore.WriteRequest request, grpc::CallOptions options)
       {
         return CallInvoker.AsyncUnaryCall(__Method_Write, null, options, request);
+      }
+      public virtual global::GigaStore.ReadReply ReadAdvanced(global::GigaStore.ReadRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return ReadAdvanced(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      public virtual global::GigaStore.ReadReply ReadAdvanced(global::GigaStore.ReadRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_ReadAdvanced, null, options, request);
+      }
+      public virtual grpc::AsyncUnaryCall<global::GigaStore.ReadReply> ReadAdvancedAsync(global::GigaStore.ReadRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return ReadAdvancedAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      public virtual grpc::AsyncUnaryCall<global::GigaStore.ReadReply> ReadAdvancedAsync(global::GigaStore.ReadRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_ReadAdvanced, null, options, request);
+      }
+      public virtual global::GigaStore.WriteReply WriteAdvanced(global::GigaStore.WriteRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return WriteAdvanced(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      public virtual global::GigaStore.WriteReply WriteAdvanced(global::GigaStore.WriteRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_WriteAdvanced, null, options, request);
+      }
+      public virtual grpc::AsyncUnaryCall<global::GigaStore.WriteReply> WriteAdvancedAsync(global::GigaStore.WriteRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return WriteAdvancedAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      public virtual grpc::AsyncUnaryCall<global::GigaStore.WriteReply> WriteAdvancedAsync(global::GigaStore.WriteRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_WriteAdvanced, null, options, request);
+      }
+      public virtual global::GigaStore.CheckReply CheckStatus(global::GigaStore.CheckRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return CheckStatus(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      public virtual global::GigaStore.CheckReply CheckStatus(global::GigaStore.CheckRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_CheckStatus, null, options, request);
+      }
+      public virtual grpc::AsyncUnaryCall<global::GigaStore.CheckReply> CheckStatusAsync(global::GigaStore.CheckRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return CheckStatusAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      public virtual grpc::AsyncUnaryCall<global::GigaStore.CheckReply> CheckStatusAsync(global::GigaStore.CheckRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_CheckStatus, null, options, request);
       }
       /// <summary>Creates a new instance of client from given <c>ClientBaseConfiguration</c>.</summary>
       protected override GigaClient NewInstance(ClientBaseConfiguration configuration)
