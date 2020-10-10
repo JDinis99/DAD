@@ -55,7 +55,7 @@ namespace GigaStore.Services
         public override Task<ChangeReply> ChangeMaster(ChangeRequest request, ServerCallContext context)
         {
             Console.WriteLine("Change Master from server: " + request.ServerId);
-
+            _gigaStorage.ChangeMaster(request.ServerId);
             return Task.FromResult(new ChangeReply
             {
                 // Empty message as ack
@@ -63,10 +63,10 @@ namespace GigaStore.Services
 
         }
 
-        public override Task<ChangeReply> ChangeMasterNotification(ChangeRequest request, ServerCallContext context)
+        public override Task<ChangeReply> ChangeMasterNotification(ChangeNotificationRequest request, ServerCallContext context)
         {
-            Console.WriteLine("Change Master Notification from server: " + request.ServerId);
-
+            Console.WriteLine("Change Master Notification from server: " + request.ServerId + " to: " + request.NewServerId);
+            _gigaStorage.ChangeMasterNotification(request.ServerId, request.NewServerId);
             return Task.FromResult(new ChangeReply
             {
                 // Empty message as ack

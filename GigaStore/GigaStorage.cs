@@ -20,7 +20,13 @@ namespace GigaStore
         private PropagateClient[] _clients;
         private AutoResetEvent[] _handles;
         private bool _inited = false;
-        private bool[] _master;
+
+        // Lists masters for all partitions
+        private int[] _master;
+        // Lists status of all servers
+        private bool[] _down;
+        // Lists partitions of current server
+        private List<int> _partitions;
 
 
         private GigaStorage()
@@ -35,8 +41,9 @@ namespace GigaStore
         }
 
         public void Init ()
-        // Starts the GRPC clients with the other servers
+        // Starts the GRPC clients with the other servers and sets up all axiliary lists
         {
+            // If it has already been iniated then ignore
             if (_inited)
             {
                 return;
@@ -44,8 +51,10 @@ namespace GigaStore
             // +1 So the server_id and respective index in the array match
             _chanels = new GrpcChannel[_numberOfServers + 1];
             _clients = new PropagateClient[_numberOfServers + 1];
-            _master = new bool[_numberOfServers + 1];
-            var url = "";
+            _master = new int[_numberOfServers + 1];
+            _down = new bool[_numberOfServers + 1];
+            _partitions = new List<int>();
+            string url;
             for (int i = 1; i <= _numberOfServers; i++)
             {
                 if (i != _serverId)
@@ -56,13 +65,28 @@ namespace GigaStore
 
                     _chanels[i] = GrpcChannel.ForAddress(url);
                     _clients[i] = new PropagateClient(_chanels[i]);
-                    _master[i] = false;
                 }
-                else
-                {
-                    _master[i] = true;
-                }
+                _master[i] = i;
+                _down[i] = false;
             }
+
+            int interval = _numberOfServers / 2;
+            int partition_id;
+            _partitions.Add(_serverId);
+            Console.WriteLine("Partition ID: " + _serverId);
+
+            for (int i = 1, y = 0; i <= interval; i++, y++)
+            {
+                partition_id = _serverId + i;
+
+                if (partition_id > _numberOfServers)
+                {
+                    partition_id = partition_id - _numberOfServers;
+                }
+                Console.WriteLine("Partition ID: " + partition_id);
+                _partitions.Add(partition_id);
+            }
+
             _inited = true;
         }
 
@@ -73,22 +97,22 @@ namespace GigaStore
             var lockRequest = new LockRequest { PartitionId = partition_id, ObjectId = object_id }; ;
             int interval = _numberOfServers / 2;
             Console.WriteLine("Interval: " + interval);
-            int serverID;
+            int server_id;
             _handles = new AutoResetEvent[interval];
             Thread[] threads = new Thread[interval];
 
             for (int i = 1, y = 0; i <= interval; i++, y++)
             {
-                serverID = _serverId + i;
+                server_id = _serverId + i;
 
-                if (serverID > _numberOfServers)
+                if (server_id > _numberOfServers)
                 {
-                    serverID = serverID - _numberOfServers;
+                    server_id = server_id - _numberOfServers;
                 }
 
                 _handles[y] = new AutoResetEvent(false);
                 int t = y;
-                int s = serverID;
+                int s = server_id;
                 var lockRequestTmp = lockRequest;
 
                 threads[y] = new Thread(async () => await ThreadLockAsync(t, s, lockRequestTmp));
@@ -113,15 +137,15 @@ namespace GigaStore
             for (int i = 1, y = 0; i <= interval; i++, y++)
             {
                 propagateRequest = new PropagateRequest { PartitionId = partition_id, ObjectId = object_id, Value = value };
-                serverID = _serverId + i;
-                if (serverID > _numberOfServers)
+                server_id = _serverId + i;
+                if (server_id > _numberOfServers)
                 {
-                    serverID = serverID - _numberOfServers;
+                    server_id = server_id - _numberOfServers;
                 }
-                Console.WriteLine("ServerID: " + serverID);
+                Console.WriteLine("ServerID: " + server_id);
                 _handles[y] = new AutoResetEvent(false);
                 int t = y;
-                int s = serverID;
+                int s = server_id;
                 var propagateRequestTmp = propagateRequest;
 
                 threads[y] = new Thread(async () => await ThreadPropagateAsync(t, s, propagateRequestTmp));
@@ -219,32 +243,75 @@ namespace GigaStore
         {
             Init();
             PropagateRequest propagateRequest;
-            int interval = _numberOfServers / 2;
-            int serverID;
+            int server_id;
 
             _gigaObjects.Add(partition_id, object_id, value);
 
-            for (int i = 1; i <= interval; i++)
+            for (int i = 1; i < _partitions.Count; i++)
             {
                 propagateRequest = new PropagateRequest { PartitionId = partition_id, ObjectId = object_id, Value = value };
-                serverID = _serverId + i;
-                if (serverID > _numberOfServers)
-                {
-                    serverID = serverID - _numberOfServers;
-                }
-                Console.WriteLine("ServerID: " + serverID);
+                server_id = _partitions[i];
+                Console.WriteLine("ServerID: " + server_id);
                 try
                 {
-                _clients[serverID].PropagateServersAdvanced(propagateRequest);
+                    _clients[server_id].PropagateServersAdvanced(propagateRequest);
                 }
                 catch
                 {
-                    Console.WriteLine("Deu merda");
+                    Console.WriteLine("Server: " + server_id + " is down");
+                    ChangeMasterRequest(server_id, server_id + 1);
+                    for (int x = 1; x <= _numberOfServers; x++)
+                    {
+                        if (x == _serverId || x == server_id || _down[x])
+                        {
+                            continue;
+                        }
+                        ChangeMasterNotificationRequest(server_id, x, server_id + 1);
+                    }
+                    
                 }
                 Console.WriteLine("Value Propagated");
 
             }
         }
+
+        public async void ChangeMasterRequest(int old_server_id, int server_id)
+        {
+            // Se nao responde e pq foi abaixo
+            masterUpdate(old_server_id, server_id);
+            try
+            {
+                Console.WriteLine("changing master from: " + old_server_id + " to " + server_id);
+
+                ChangeRequest changeRequest = new ChangeRequest { ServerId = old_server_id };
+                await _clients[server_id].ChangeMasterAsync(changeRequest);
+
+
+            }
+            catch
+            {
+                // Keep trying until it works
+                ChangeMasterRequest(old_server_id, server_id + 1);
+
+            }
+        }
+
+        public void ChangeMasterNotificationRequest (int down_server_id, int server_id, int new_server)
+        {
+            try
+            {
+                Console.WriteLine("Notifying server: " + server_id + " about down server " + down_server_id);
+                ChangeNotificationRequest changeNotificationRequest = new ChangeNotificationRequest { ServerId = down_server_id, NewServerId = new_server };
+                _clients[server_id].ChangeMasterNotificationAsync(changeNotificationRequest);
+            }
+            catch
+            {
+                // Se nao responde e pq foi abaixo
+                ChangeMasterRequest(server_id, server_id + 1);
+
+            }
+        }
+    
 
         public string ReadAdvanced(int partition_id, int object_id)
         {
@@ -268,20 +335,47 @@ namespace GigaStore
         public void ChangeMaster(int server_id)
         {
             Init();
-            _master[server_id] = true;
-            var tmp = new List<PropagateClient>(_clients);
-            tmp.RemoveAt(server_id);
-            _clients= tmp.ToArray();
-            _numberOfServers--;
+            masterUpdate(server_id, _serverId);
+
+            Console.WriteLine("IM NOW MASTER OF PARTITION " + server_id);
         }
 
         public void ChangeMasterNotification(int old_server, int new_server)
         {
             Init();
+            // If already knew then ignore
+            if (_down[old_server])
+            {
+                return;
+            }
+
+            masterUpdate(old_server, new_server);
+
+            // 
             var tmp = new List<PropagateClient>(_clients);
             tmp.RemoveAt(old_server);
             _clients = tmp.ToArray();
-            _numberOfServers--;
+            Console.WriteLine("IM NOTIFIED THAT SERVER " + old_server + " IS DOWN");
+        }
+
+        public bool isMaster(int partition_id)
+        {
+            Init();
+            return _master[partition_id] == _serverId;
+        }
+
+        // Set new master for all partitions ruled by old server
+        public void masterUpdate (int old_server, int new_server)
+        {
+            _down[old_server] = true;
+
+            for (int i = 1; i < _master.Length; i++)
+            {
+                if (_master[i] == old_server)
+                {
+                    _master[i] = new_server;
+                }
+            }
         }
 
     }

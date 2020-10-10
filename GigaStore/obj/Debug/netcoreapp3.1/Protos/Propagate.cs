@@ -28,14 +28,16 @@ namespace GigaStore {
             "FAoMcGFydGl0aW9uX2lkGAEgASgFEhEKCW9iamVjdF9pZBgCIAEoBRINCgV2",
             "YWx1ZRgDIAEoCSIQCg5Qcm9wYWdhdGVSZXBseSI2CgtMb2NrUmVxdWVzdBIU",
             "CgxwYXJ0aXRpb25faWQYASABKAUSEQoJb2JqZWN0X2lkGAIgASgFIgsKCUxv",
-            "Y2tSZXBseSIiCg1DaGFuZ2VSZXF1ZXN0EhEKCXNlcnZlcl9pZBgBIAEoBSIN",
-            "CgtDaGFuZ2VSZXBseTKUAgoJUHJvcGFnYXRlEjYKEFByb3BhZ2F0ZVNlcnZl",
-            "cnMSES5Qcm9wYWdhdGVSZXF1ZXN0Gg8uUHJvcGFnYXRlUmVwbHkSJwoLTG9j",
-            "a1NlcnZlcnMSDC5Mb2NrUmVxdWVzdBoKLkxvY2tSZXBseRI+ChhQcm9wYWdh",
-            "dGVTZXJ2ZXJzQWR2YW5jZWQSES5Qcm9wYWdhdGVSZXF1ZXN0Gg8uUHJvcGFn",
-            "YXRlUmVwbHkSLAoMQ2hhbmdlTWFzdGVyEg4uQ2hhbmdlUmVxdWVzdBoMLkNo",
-            "YW5nZVJlcGx5EjgKGENoYW5nZU1hc3Rlck5vdGlmaWNhdGlvbhIOLkNoYW5n",
-            "ZVJlcXVlc3QaDC5DaGFuZ2VSZXBseUIMqgIJR2lnYVN0b3JlYgZwcm90bzM="));
+            "Y2tSZXBseSIiCg1DaGFuZ2VSZXF1ZXN0EhEKCXNlcnZlcl9pZBgBIAEoBSJF",
+            "ChlDaGFuZ2VOb3RpZmljYXRpb25SZXF1ZXN0EhEKCXNlcnZlcl9pZBgBIAEo",
+            "BRIVCg1uZXdfc2VydmVyX2lkGAIgASgFIg0KC0NoYW5nZVJlcGx5MqACCglQ",
+            "cm9wYWdhdGUSNgoQUHJvcGFnYXRlU2VydmVycxIRLlByb3BhZ2F0ZVJlcXVl",
+            "c3QaDy5Qcm9wYWdhdGVSZXBseRInCgtMb2NrU2VydmVycxIMLkxvY2tSZXF1",
+            "ZXN0GgouTG9ja1JlcGx5Ej4KGFByb3BhZ2F0ZVNlcnZlcnNBZHZhbmNlZBIR",
+            "LlByb3BhZ2F0ZVJlcXVlc3QaDy5Qcm9wYWdhdGVSZXBseRIsCgxDaGFuZ2VN",
+            "YXN0ZXISDi5DaGFuZ2VSZXF1ZXN0GgwuQ2hhbmdlUmVwbHkSRAoYQ2hhbmdl",
+            "TWFzdGVyTm90aWZpY2F0aW9uEhouQ2hhbmdlTm90aWZpY2F0aW9uUmVxdWVz",
+            "dBoMLkNoYW5nZVJlcGx5QgyqAglHaWdhU3RvcmViBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
@@ -44,6 +46,7 @@ namespace GigaStore {
             new pbr::GeneratedClrTypeInfo(typeof(global::GigaStore.LockRequest), global::GigaStore.LockRequest.Parser, new[]{ "PartitionId", "ObjectId" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::GigaStore.LockReply), global::GigaStore.LockReply.Parser, null, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::GigaStore.ChangeRequest), global::GigaStore.ChangeRequest.Parser, new[]{ "ServerId" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::GigaStore.ChangeNotificationRequest), global::GigaStore.ChangeNotificationRequest.Parser, new[]{ "ServerId", "NewServerId" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::GigaStore.ChangeReply), global::GigaStore.ChangeReply.Parser, null, null, null, null, null)
           }));
     }
@@ -947,6 +950,214 @@ namespace GigaStore {
 
   }
 
+  public sealed partial class ChangeNotificationRequest : pb::IMessage<ChangeNotificationRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<ChangeNotificationRequest> _parser = new pb::MessageParser<ChangeNotificationRequest>(() => new ChangeNotificationRequest());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<ChangeNotificationRequest> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::GigaStore.PropagateReflection.Descriptor.MessageTypes[5]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public ChangeNotificationRequest() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public ChangeNotificationRequest(ChangeNotificationRequest other) : this() {
+      serverId_ = other.serverId_;
+      newServerId_ = other.newServerId_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public ChangeNotificationRequest Clone() {
+      return new ChangeNotificationRequest(this);
+    }
+
+    /// <summary>Field number for the "server_id" field.</summary>
+    public const int ServerIdFieldNumber = 1;
+    private int serverId_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int ServerId {
+      get { return serverId_; }
+      set {
+        serverId_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "new_server_id" field.</summary>
+    public const int NewServerIdFieldNumber = 2;
+    private int newServerId_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int NewServerId {
+      get { return newServerId_; }
+      set {
+        newServerId_ = value;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as ChangeNotificationRequest);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(ChangeNotificationRequest other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (ServerId != other.ServerId) return false;
+      if (NewServerId != other.NewServerId) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (ServerId != 0) hash ^= ServerId.GetHashCode();
+      if (NewServerId != 0) hash ^= NewServerId.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (ServerId != 0) {
+        output.WriteRawTag(8);
+        output.WriteInt32(ServerId);
+      }
+      if (NewServerId != 0) {
+        output.WriteRawTag(16);
+        output.WriteInt32(NewServerId);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (ServerId != 0) {
+        output.WriteRawTag(8);
+        output.WriteInt32(ServerId);
+      }
+      if (NewServerId != 0) {
+        output.WriteRawTag(16);
+        output.WriteInt32(NewServerId);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      if (ServerId != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(ServerId);
+      }
+      if (NewServerId != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(NewServerId);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(ChangeNotificationRequest other) {
+      if (other == null) {
+        return;
+      }
+      if (other.ServerId != 0) {
+        ServerId = other.ServerId;
+      }
+      if (other.NewServerId != 0) {
+        NewServerId = other.NewServerId;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 8: {
+            ServerId = input.ReadInt32();
+            break;
+          }
+          case 16: {
+            NewServerId = input.ReadInt32();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            ServerId = input.ReadInt32();
+            break;
+          }
+          case 16: {
+            NewServerId = input.ReadInt32();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
   public sealed partial class ChangeReply : pb::IMessage<ChangeReply>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -959,7 +1170,7 @@ namespace GigaStore {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::GigaStore.PropagateReflection.Descriptor.MessageTypes[5]; }
+      get { return global::GigaStore.PropagateReflection.Descriptor.MessageTypes[6]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]

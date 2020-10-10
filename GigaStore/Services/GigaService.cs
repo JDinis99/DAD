@@ -32,7 +32,12 @@ namespace GigaStore.Services
 
         public override Task<WriteReply> Write(WriteRequest request, ServerCallContext context)
         {
-            // TODO verificar o server
+            Console.WriteLine("WRITE");
+            if (!_gigaStorage.isMaster(request.PartitionId))
+            {
+                // TODO lancar uma execao
+                Console.WriteLine("PARTICAO ERRADA");
+            }
             _gigaStorage.Write(request.PartitionId, request.ObjectId, request.Value);
             return Task.FromResult(new WriteReply
             {
@@ -44,7 +49,7 @@ namespace GigaStore.Services
         {
             Console.WriteLine("Advanced read");
 
-            string value = _gigaStorage.Read(request.PartitionId, request.ObjectId);
+            string value = _gigaStorage.ReadAdvanced(request.PartitionId, request.ObjectId);
             return Task.FromResult(new ReadReply
             {
                 Value = value
@@ -54,9 +59,13 @@ namespace GigaStore.Services
         public override Task<WriteReply> WriteAdvanced(WriteRequest request, ServerCallContext context)
         {
             Console.WriteLine("Advanced write");
-
+            if (!_gigaStorage.isMaster(request.PartitionId))
+            {
+                // TODO lancar uma execao
+                Console.WriteLine("PARTICAO ERRADA");
+            }
             // TODO verificar o server
-            _gigaStorage.Write(request.PartitionId, request.ObjectId, request.Value);
+            _gigaStorage.WriteAdvanced(request.PartitionId, request.ObjectId, request.Value);
             return Task.FromResult(new WriteReply
             {
                 // Empty message as ack
