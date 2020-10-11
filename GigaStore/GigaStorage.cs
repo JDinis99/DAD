@@ -101,27 +101,18 @@ namespace GigaStore
             Init();
             PropagateRequest propagateRequest;
             var lockRequest = new LockRequest { PartitionId = partition_id, ObjectId = object_id }; ;
-            int interval = _numberOfServers / 2;
-            Console.WriteLine("Interval: " + interval);
-            int server_id;
-            _handles = new AutoResetEvent[interval];
-            Thread[] threads = new Thread[interval];
+            _handles = new AutoResetEvent[_servers[partition_id].Count];
+            Thread[] threads = new Thread[_servers[partition_id].Count];
 
-            for (int i = 1, y = 0; i <= interval; i++, y++)
+            Console.WriteLine("Count " + _servers[partition_id].Count);
+            for (int i = 0; i < _servers[partition_id].Count ; i++)
             {
-                server_id = _serverId + i;
-
-                if (server_id > _numberOfServers)
-                {
-                    server_id = server_id - _numberOfServers;
-                }
-
-                _handles[y] = new AutoResetEvent(false);
-                int t = y;
-                int s = server_id;
+                _handles[i] = new AutoResetEvent(false);
+                int t = i;
+                int s = _servers[partition_id][i];
                 var lockRequestTmp = lockRequest;
 
-                threads[y] = new Thread(async () => await ThreadLockAsync(t, s, lockRequestTmp));
+                threads[i] = new Thread(async () => await ThreadLockAsync(t, s, lockRequestTmp));
             }
 
             for (int x = 0; x < threads.Length; x++)
@@ -137,24 +128,20 @@ namespace GigaStore
             _gigaObjects.Add(partition_id, object_id, value);
             _semObjects.Add(partition_id, object_id, new Semaphore(1, 1));
 
-            _handles = new AutoResetEvent[interval];
-            threads = new Thread[interval];
+            _handles = new AutoResetEvent[_servers[partition_id].Count];
+            threads = new Thread[_servers[partition_id].Count];
 
-            for (int i = 1, y = 0; i <= interval; i++, y++)
+            for (int i = 0; i < _servers[partition_id].Count; i++)
             {
                 propagateRequest = new PropagateRequest { PartitionId = partition_id, ObjectId = object_id, Value = value };
-                server_id = _serverId + i;
-                if (server_id > _numberOfServers)
-                {
-                    server_id = server_id - _numberOfServers;
-                }
-                Console.WriteLine("ServerID: " + server_id);
-                _handles[y] = new AutoResetEvent(false);
-                int t = y;
-                int s = server_id;
+                
+                Console.WriteLine("ServerID: " + i);
+                _handles[i] = new AutoResetEvent(false);
+                int t = i;
+                int s = _servers[partition_id][i];
                 var propagateRequestTmp = propagateRequest;
 
-                threads[y] = new Thread(async () => await ThreadPropagateAsync(t, s, propagateRequestTmp));
+                threads[i] = new Thread(async () => await ThreadPropagateAsync(t, s, propagateRequestTmp));
                 Console.WriteLine("Value Propagated");
 
             }
@@ -175,7 +162,14 @@ namespace GigaStore
         public async Task ThreadLockAsync (int t, int serverID, LockRequest lockRequest)
         {
             Console.WriteLine("thread: " + t);
-            await _clients[serverID].LockServersAsync(lockRequest);
+            try
+            {
+                await _clients[serverID].LockServersAsync(lockRequest);
+            }
+            catch
+            {
+                ChangeMasterRequest(serverID, serverID + 1);
+            }
             _handles[t].Set();
         }
 
@@ -183,7 +177,14 @@ namespace GigaStore
         public async Task ThreadPropagateAsync(int t, int serverID, PropagateRequest propagateRequest)
         {
             Console.WriteLine("thread: " + t);
-            await _clients[serverID].PropagateServersAsync(propagateRequest);
+            try
+            {
+                await _clients[serverID].PropagateServersAsync(propagateRequest);
+            }
+            catch
+            {
+                ChangeMasterRequest(serverID, serverID + 1);
+            }
             _handles[t].Set();
         }
 
@@ -457,14 +458,20 @@ namespace GigaStore
         } 
         public async Task ReplicateNewAsync (int partition_id, int server_id)
         {
-            
-            ReplicateRequest replicateRequest = new ReplicateRequest { PartitionId = partition_id };
-            var objects = _clients[server_id].ReplicatePartition(replicateRequest);
-
-            await foreach (var giga in objects.ResponseStream.ReadAllAsync())
+            try
             {
-                Console.WriteLine("REPLICATE PARTITIOM P: " + giga.PartitionId + " ID: " + giga.ObjectId + " Value: " + giga.Value);
-                _gigaObjects.Add(giga.PartitionId, giga.ObjectId, giga.Value);
+                ReplicateRequest replicateRequest = new ReplicateRequest { PartitionId = partition_id };
+                var objects = _clients[server_id].ReplicatePartition(replicateRequest);
+
+                await foreach (var giga in objects.ResponseStream.ReadAllAsync())
+                {
+                    Console.WriteLine("REPLICATE PARTITIOM P: " + giga.PartitionId + " ID: " + giga.ObjectId + " Value: " + giga.Value);
+                    _gigaObjects.Add(giga.PartitionId, giga.ObjectId, giga.Value);
+                }
+            }
+            catch
+            {
+                // Already accounted for
             }
             
         }
