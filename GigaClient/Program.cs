@@ -61,10 +61,10 @@ namespace GigaClient
             /*
             await client2.WriteAsync(writeRequest2);
             Console.WriteLine("Value Stored 2");
-            */
 
             await client3.WriteAsync(writeRequest3);
             Console.WriteLine("Value Stored 3");
+            */
 
             await client4.WriteAsync(writeRequest4);
             Console.WriteLine("Value Stored 4");
@@ -125,7 +125,6 @@ namespace GigaClient
 
             System.Threading.Thread.Sleep(1000);
             Console.WriteLine("");
-            */
 
             Console.WriteLine("Value From Server 3");
 
@@ -146,7 +145,7 @@ namespace GigaClient
 
             System.Threading.Thread.Sleep(1000);
             Console.WriteLine("");
-
+            */
 
             Console.WriteLine("Value From Server 4");
 

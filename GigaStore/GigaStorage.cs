@@ -37,6 +37,7 @@ namespace GigaStore
             _semObjects = new MultiKeyDictionary<int, int, Semaphore>();
         }
 
+        // Singleton Design Patter "constructor"
         public static GigaStorage GetGigaStorage()
         {
             return _instance;
@@ -45,7 +46,7 @@ namespace GigaStore
         public void Init ()
         // Starts the GRPC clients with the other servers and sets up all axiliary lists
         {
-            // If it has already been iniated then ignore
+            // If it has already been initiated then ignore
             if (_inited)
             {
                 return;
@@ -96,9 +97,17 @@ namespace GigaStore
             _inited = true;
         }
 
+        /*
+         * Base Version
+         * 
+         */
+
+        // Base version Write
         public void Write(int partition_id, int object_id, string value)
         {
             Init();
+
+            // Locks object on all servers that share this partition
             PropagateRequest propagateRequest;
             var lockRequest = new LockRequest { PartitionId = partition_id, ObjectId = object_id }; ;
             _handles = new AutoResetEvent[_servers[partition_id].Count];
@@ -121,19 +130,23 @@ namespace GigaStore
                 threads[x].Start();
             }
 
+            // Waits for all locks
             Console.WriteLine("Awating lock handles");
             WaitHandle.WaitAll(_handles);
             Console.WriteLine("Done lock handles");
 
+            // Stores the value and a semaphore for this object
             _gigaObjects.Add(partition_id, object_id, value);
             _semObjects.Add(partition_id, object_id, new Semaphore(1, 1));
 
+
+            // Stores the value on all servers that share this partition
+            propagateRequest = new PropagateRequest { PartitionId = partition_id, ObjectId = object_id, Value = value };
             _handles = new AutoResetEvent[_servers[partition_id].Count];
             threads = new Thread[_servers[partition_id].Count];
 
             for (int i = 0; i < _servers[partition_id].Count; i++)
             {
-                propagateRequest = new PropagateRequest { PartitionId = partition_id, ObjectId = object_id, Value = value };
                 
                 Console.WriteLine("ServerID: " + i);
                 _handles[i] = new AutoResetEvent(false);
@@ -152,13 +165,14 @@ namespace GigaStore
                 threads[x].Start();
             }
 
+            // Waits for all propagations
             Console.WriteLine("Awating propagate handles");
             WaitHandle.WaitAll(_handles);
             Console.WriteLine("Done propagate handles");
         }
 
 
-        // Method to facilitate ThreadLock
+        // Method to facilitate Lock Requests to other servers with threads
         public async Task ThreadLockAsync (int t, int serverID, LockRequest lockRequest)
         {
             Console.WriteLine("thread: " + t);
@@ -168,12 +182,13 @@ namespace GigaStore
             }
             catch
             {
+                // If fails then the server is down
                 ChangeMasterRequest(serverID, serverID + 1);
             }
             _handles[t].Set();
         }
 
-        // Method to facilitate ThreadPropagate
+        // Method to facilitate Propagate Requests to other servers with threads
         public async Task ThreadPropagateAsync(int t, int serverID, PropagateRequest propagateRequest)
         {
             Console.WriteLine("thread: " + t);
@@ -183,11 +198,13 @@ namespace GigaStore
             }
             catch
             {
+                // If fails then the server is down
                 ChangeMasterRequest(serverID, serverID + 1);
             }
             _handles[t].Set();
         }
 
+        // Locks an object
         public void Lock(int partition_id, int object_id)
         {
             Console.WriteLine("LOCKING partition: " + partition_id + " object: " + object_id);
@@ -198,6 +215,7 @@ namespace GigaStore
             }
             catch (KeyNotFoundException)
             {
+                // If there is no semaphore (in case of first write of this object) create one
                 _semObjects.Add(partition_id, object_id, new Semaphore(1,1));
                 _semObjects[partition_id][object_id].WaitOne();
 
@@ -205,6 +223,7 @@ namespace GigaStore
             Console.WriteLine("LOCKED partition: " + partition_id + " object: " + object_id);
         }
 
+        // Stores an object from propagation and releases the lock
         public void Store(int partition_id, int object_id, string value)
         {
             _gigaObjects.Add(partition_id, object_id, value);
@@ -214,6 +233,7 @@ namespace GigaStore
         }
 
 
+        // Base Version Read
         public string Read(int partition_id, int object_id)
         {
             string value;
@@ -232,21 +252,15 @@ namespace GigaStore
             return value;
         }
 
-        public void SetServerId(int serverId)
-        {
-            _serverId = serverId;
-        }
 
-        public int GetServerId()
-        {
-            return _serverId;
-        }
 
-        public void SetNumberOfServers(int numberOfServers)
-        {
-            _numberOfServers = numberOfServers;
-        }
+        /*
+         * Advanced Version
+         * 
+         */
 
+
+        // Advanced Version Write
         public void WriteAdvanced(int partition_id, int object_id, string value)
         {
             Init();
@@ -255,6 +269,7 @@ namespace GigaStore
 
             _gigaObjects.Add(partition_id, object_id, value);
 
+            // Propagate to all servers without waiting for response
             for (int i = 0; i < _servers[partition_id].Count; i++)
             {
                 propagateRequest = new PropagateRequest { PartitionId = partition_id, ObjectId = object_id, Value = value };
@@ -266,6 +281,7 @@ namespace GigaStore
                 }
                 catch
                 {
+                    // If fails then the server is down
                     ChangeMasterRequest(server_id, server_id + 1);
                 }
 
@@ -273,60 +289,7 @@ namespace GigaStore
             Console.WriteLine("Value Propagated");
         }
 
-        // Notifies new master and all other servers that a server is down
-        public async void ChangeMasterRequest(int old_server_id, int server_id)
-        {
-
-            Console.WriteLine("Server: " + old_server_id + " is down");
-            // If here for the first time
-            
-
-            try
-            {
-                Console.WriteLine("changing master from: " + old_server_id + " to " + server_id);
-
-                ChangeRequest changeRequest = new ChangeRequest { ServerId = old_server_id };
-                await _clients[server_id].ChangeMasterAsync(changeRequest);
-
-
-            }
-            catch
-            {
-                // Keep trying until it works
-                ChangeMasterRequest(old_server_id, server_id + 1);
-                ChangeMasterRequest(server_id, server_id + 1);
-            }
-            if (!_down[old_server_id])
-            {
-                await masterUpdateAsync(old_server_id, server_id);
-                for (int x = 1; x <= _numberOfServers; x++)
-                {
-                    if (x == _serverId || x == server_id || _down[x])
-                    {
-                        continue;
-                    }
-                    ChangeMasterNotificationRequest(old_server_id, x, server_id);
-                }
-            }
-        }
-
-        public void ChangeMasterNotificationRequest (int down_server_id, int server_id, int new_server)
-        {
-            try
-            {
-                Console.WriteLine("Notifying server: " + server_id + " about down server " + down_server_id + " with new " + new_server);
-                ChangeNotificationRequest changeNotificationRequest = new ChangeNotificationRequest { ServerId = down_server_id, NewServerId = new_server };
-                _clients[server_id].ChangeMasterNotificationAsync(changeNotificationRequest);
-            }
-            catch
-            {
-                // Se nao responde e pq foi abaixo
-                ChangeMasterRequest(server_id, server_id + 1);
-
-            }
-        }
-    
-
+        // Advanced Version Read
         public string ReadAdvanced(int partition_id, int object_id)
         {
             string value;
@@ -341,11 +304,74 @@ namespace GigaStore
             return value;
         }
 
+        // Stores value without blocking a semaphore
         public void StoreAdvanced(int partition_id, int object_id, string value)
         {
             _gigaObjects.Add(partition_id, object_id, value);
         }
 
+        /*
+         * Auxiliary
+         * 
+         */
+
+        // Notifies new master and all other servers that down_server_id is down and that new_server_id is the new master
+        public async void ChangeMasterRequest(int down_server_id, int new_server_id)
+        {
+
+            Console.WriteLine("Server: " + down_server_id + " is down");
+            try
+            {
+                Console.WriteLine("changing master from: " + down_server_id + " to " + new_server_id);
+
+                ChangeRequest changeRequest = new ChangeRequest { ServerId = down_server_id };
+                await _clients[new_server_id].ChangeMasterAsync(changeRequest);
+
+
+            }
+            catch
+            {
+                // Keep trying until it works with another server
+                ChangeMasterRequest(down_server_id, new_server_id + 1);
+                // If it failed, the new server is also down
+                ChangeMasterRequest(new_server_id, new_server_id + 1);
+            }
+
+            // If is the first time current server is notified about down server
+            if (!_down[down_server_id])
+            {
+                await masterUpdateAsync(down_server_id, new_server_id);
+                // Notify all other servers that old_server_id is down
+                for (int x = 1; x <= _numberOfServers; x++)
+                {
+                    // Ignore current server, new master and down servers
+                    if (x == _serverId || x == new_server_id || _down[x])
+                    {
+                        continue;
+                    }
+                    ChangeMasterNotificationRequest(down_server_id, x, new_server_id);
+                }
+            }
+        }
+
+        // Notifies server_id that down_server_id is down and that the new master of the partions of down_server_id is new_server
+        public void ChangeMasterNotificationRequest (int down_server_id, int server_id, int new_server)
+        {
+            try
+            {
+                Console.WriteLine("Notifying server: " + server_id + " about down server " + down_server_id + " with new " + new_server);
+                ChangeNotificationRequest changeNotificationRequest = new ChangeNotificationRequest { ServerId = down_server_id, NewServerId = new_server };
+                _clients[server_id].ChangeMasterNotificationAsync(changeNotificationRequest);
+            }
+            catch
+            {
+                // If fails then the server is down
+                ChangeMasterRequest(server_id, server_id + 1);
+
+            }
+        }
+    
+        // Changes Master of all partitions of server_id with current server
         public async Task ChangeMasterAsync(int server_id)
         {
             Init();
@@ -354,6 +380,7 @@ namespace GigaStore
             Console.WriteLine("IM NOW MASTER OF PARTITION " + server_id);
         }
 
+        // Chasges Master of all partitions of old_server with new_server
         public async Task ChangeMasterNotificationAsync(int old_server, int new_server)
         {
             Init();
@@ -368,6 +395,7 @@ namespace GigaStore
             Console.WriteLine("IM NOTIFIED THAT SERVER " + old_server + " IS DOWN");
         }
 
+        // Responds is current server is master of partition_id
         public bool isMaster(int partition_id)
         {
             Init();
@@ -403,13 +431,12 @@ namespace GigaStore
                 }
                 catch
                 {
-                    // ignore
+                    // Ignore
                 }
             }
 
 
             // If not enough servers share the master partitions request more servers to share it
-            
             for (int i = 1; i < _master.Length; i++)
             {
                 if (_master[i] == _serverId)
@@ -452,6 +479,7 @@ namespace GigaStore
 
         }
 
+        // Gets Partition
         public Dictionary<int, string> getPartition (int parttion_id)
         {
             return _gigaObjects[parttion_id];
@@ -477,6 +505,7 @@ namespace GigaStore
         }
 
         // TODO Test this
+        // Checks status of server_id in case a client suspects is down
         public async Task CheckStatusAsync (int server_id)
         {
             try
@@ -489,6 +518,23 @@ namespace GigaStore
                 // If server is down
                 ChangeMasterRequest(server_id, _serverId + 1);
             }
+        }
+
+
+
+        public void SetServerId(int serverId)
+        {
+            _serverId = serverId;
+        }
+
+        public int GetServerId()
+        {
+            return _serverId;
+        }
+
+        public void SetNumberOfServers(int numberOfServers)
+        {
+            _numberOfServers = numberOfServers;
         }
 
     }
