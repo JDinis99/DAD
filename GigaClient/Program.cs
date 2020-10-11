@@ -68,15 +68,16 @@ namespace GigaClient
 
             await client3.WriteAdvancedAsync(writeRequest2);
             Console.WriteLine("Value Stored 2");
+            */
 
-            /*
             await client4.WriteAdvancedAsync(writeRequest4);
             Console.WriteLine("Value Stored 4");
 
             await client5.WriteAdvancedAsync(writeRequest5);
             Console.WriteLine("Value Stored 5");
-            */
 
+            Console.WriteLine("10 seconds to propagate");
+            System.Threading.Thread.Sleep(10000);
 
             Console.WriteLine("");
             var readRequest1 = new ReadRequest { PartitionId = 1, ObjectId = 1, ServerId = 1 };
@@ -128,7 +129,6 @@ namespace GigaClient
 
             System.Threading.Thread.Sleep(1000);
             Console.WriteLine("");
-            
 
 
             Console.WriteLine("Value From Server 3");
@@ -151,6 +151,7 @@ namespace GigaClient
             System.Threading.Thread.Sleep(1000);
             Console.WriteLine("");
             */
+
 
             Console.WriteLine("Value From Server 4");
 

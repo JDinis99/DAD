@@ -9,6 +9,9 @@ service Propagate {
   rpc PropagateServersAdvanced (PropagateRequest) returns (PropagateReply);
   rpc ChangeMaster (ChangeRequest) returns (ChangeReply);
   rpc ChangeMasterNotification (ChangeNotificationRequest) returns (ChangeReply);
+
+  rpc ReplicateNew (ReplicateNewRequest) returns (ReplicateNewReply);
+  rpc ReplicatePartition (ReplicateRequest) returns (stream ReplicateReply);
 }
 
 
@@ -41,5 +44,24 @@ message ChangeNotificationRequest {
 }
 
 message ChangeReply {
+
+}
+
+message ReplicateRequest {
+	int32 partition_id = 1;
+}
+
+message ReplicateReply {
+	int32 partition_id = 1;
+	int32 object_id = 2;
+	string value = 3;
+}
+
+message ReplicateNewRequest {
+	int32 partition_id = 1;
+	int32 server_id = 2;
+}
+
+message ReplicateNewReply {
 
 }

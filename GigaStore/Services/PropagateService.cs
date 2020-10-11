@@ -52,22 +52,48 @@ namespace GigaStore.Services
 
         }
 
-        public override Task<ChangeReply> ChangeMaster(ChangeRequest request, ServerCallContext context)
+        public override async Task<ChangeReply> ChangeMaster(ChangeRequest request, ServerCallContext context)
         {
             Console.WriteLine("Change Master from server: " + request.ServerId);
-            _gigaStorage.ChangeMaster(request.ServerId);
-            return Task.FromResult(new ChangeReply
+            await _gigaStorage.ChangeMasterAsync(request.ServerId);
+            return await Task.FromResult(new ChangeReply
             {
                 // Empty message as ack
             });
 
         }
 
-        public override Task<ChangeReply> ChangeMasterNotification(ChangeNotificationRequest request, ServerCallContext context)
+        public override async Task<ChangeReply> ChangeMasterNotification(ChangeNotificationRequest request, ServerCallContext context)
         {
             Console.WriteLine("Change Master Notification from server: " + request.ServerId + " to: " + request.NewServerId);
-            _gigaStorage.ChangeMasterNotification(request.ServerId, request.NewServerId);
-            return Task.FromResult(new ChangeReply
+            await _gigaStorage.ChangeMasterNotificationAsync(request.ServerId, request.NewServerId);
+            return await Task.FromResult(new ChangeReply
+            {
+                // Empty message as ack
+            });
+
+        }
+
+        public override async Task ReplicatePartition(ReplicateRequest request, IServerStreamWriter<ReplicateReply> responseStream, ServerCallContext context)
+        {
+            Dictionary<int, string> partition = _gigaStorage.getPartition(request.PartitionId);
+            foreach(KeyValuePair<int, string> entry in partition)
+            {
+                await responseStream.WriteAsync(new ReplicateReply
+                {
+                    PartitionId = request.PartitionId,
+                    ObjectId = entry.Key,
+                    Value = entry.Value
+                });
+            }
+        }
+
+        public override async Task<ReplicateNewReply> ReplicateNew(ReplicateNewRequest request, ServerCallContext context)
+        {
+            Console.WriteLine("Asked to Replicate: " + request.PartitionId + " from server " + request.ServerId);
+
+            await _gigaStorage.ReplicateNewAsync(request.PartitionId, request.ServerId);
+            return await Task.FromResult(new ReplicateNewReply
             {
                 // Empty message as ack
             });
