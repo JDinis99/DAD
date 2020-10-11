@@ -469,6 +469,21 @@ namespace GigaStore
             
         }
 
+        // TODO Test this
+        public async Task CheckStatusAsync (int server_id)
+        {
+            try
+            {
+                CheckServersRequest checkServersRequest = new CheckServersRequest { };
+                await _clients[server_id].CheckStatusServersAsync(checkServersRequest);
+            }
+            catch
+            {
+                // If server is down
+                ChangeMasterRequest(server_id, _serverId + 1);
+            }
+        }
+
     }
 
 }

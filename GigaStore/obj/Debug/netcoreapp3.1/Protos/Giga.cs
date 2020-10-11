@@ -28,13 +28,13 @@ namespace GigaStore {
             "b25faWQYASABKAUSEQoJb2JqZWN0X2lkGAIgASgFEhEKCXNlcnZlcl9pZBgD",
             "IAEoBSIaCglSZWFkUmVwbHkSDQoFdmFsdWUYASABKAkiRgoMV3JpdGVSZXF1",
             "ZXN0EhQKDHBhcnRpdGlvbl9pZBgBIAEoBRIRCglvYmplY3RfaWQYAiABKAUS",
-            "DQoFdmFsdWUYAyABKAkiDAoKV3JpdGVSZXBseSIOCgxDaGVja1JlcXVlc3Qi",
-            "DAoKQ2hlY2tSZXBseTLPAQoER2lnYRIgCgRSZWFkEgwuUmVhZFJlcXVlc3Qa",
-            "Ci5SZWFkUmVwbHkSIwoFV3JpdGUSDS5Xcml0ZVJlcXVlc3QaCy5Xcml0ZVJl",
-            "cGx5EigKDFJlYWRBZHZhbmNlZBIMLlJlYWRSZXF1ZXN0GgouUmVhZFJlcGx5",
-            "EisKDVdyaXRlQWR2YW5jZWQSDS5Xcml0ZVJlcXVlc3QaCy5Xcml0ZVJlcGx5",
-            "EikKC0NoZWNrU3RhdHVzEg0uQ2hlY2tSZXF1ZXN0GgsuQ2hlY2tSZXBseUIM",
-            "qgIJR2lnYVN0b3JlYgZwcm90bzM="));
+            "DQoFdmFsdWUYAyABKAkiDAoKV3JpdGVSZXBseSIhCgxDaGVja1JlcXVlc3QS",
+            "EQoJc2VydmVyX2lkGAEgASgFIgwKCkNoZWNrUmVwbHkyzwEKBEdpZ2ESIAoE",
+            "UmVhZBIMLlJlYWRSZXF1ZXN0GgouUmVhZFJlcGx5EiMKBVdyaXRlEg0uV3Jp",
+            "dGVSZXF1ZXN0GgsuV3JpdGVSZXBseRIoCgxSZWFkQWR2YW5jZWQSDC5SZWFk",
+            "UmVxdWVzdBoKLlJlYWRSZXBseRIrCg1Xcml0ZUFkdmFuY2VkEg0uV3JpdGVS",
+            "ZXF1ZXN0GgsuV3JpdGVSZXBseRIpCgtDaGVja1N0YXR1cxINLkNoZWNrUmVx",
+            "dWVzdBoLLkNoZWNrUmVwbHlCDKoCCUdpZ2FTdG9yZWIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
@@ -42,7 +42,7 @@ namespace GigaStore {
             new pbr::GeneratedClrTypeInfo(typeof(global::GigaStore.ReadReply), global::GigaStore.ReadReply.Parser, new[]{ "Value" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::GigaStore.WriteRequest), global::GigaStore.WriteRequest.Parser, new[]{ "PartitionId", "ObjectId", "Value" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::GigaStore.WriteReply), global::GigaStore.WriteReply.Parser, null, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::GigaStore.CheckRequest), global::GigaStore.CheckRequest.Parser, null, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::GigaStore.CheckRequest), global::GigaStore.CheckRequest.Parser, new[]{ "ServerId" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::GigaStore.CheckReply), global::GigaStore.CheckReply.Parser, null, null, null, null, null)
           }));
     }
@@ -875,12 +875,24 @@ namespace GigaStore {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public CheckRequest(CheckRequest other) : this() {
+      serverId_ = other.serverId_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public CheckRequest Clone() {
       return new CheckRequest(this);
+    }
+
+    /// <summary>Field number for the "server_id" field.</summary>
+    public const int ServerIdFieldNumber = 1;
+    private int serverId_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int ServerId {
+      get { return serverId_; }
+      set {
+        serverId_ = value;
+      }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -896,12 +908,14 @@ namespace GigaStore {
       if (ReferenceEquals(other, this)) {
         return true;
       }
+      if (ServerId != other.ServerId) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override int GetHashCode() {
       int hash = 1;
+      if (ServerId != 0) hash ^= ServerId.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -918,6 +932,10 @@ namespace GigaStore {
     #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       output.WriteRawMessage(this);
     #else
+      if (ServerId != 0) {
+        output.WriteRawTag(8);
+        output.WriteInt32(ServerId);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -927,6 +945,10 @@ namespace GigaStore {
     #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (ServerId != 0) {
+        output.WriteRawTag(8);
+        output.WriteInt32(ServerId);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -936,6 +958,9 @@ namespace GigaStore {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
       int size = 0;
+      if (ServerId != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(ServerId);
+      }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -946,6 +971,9 @@ namespace GigaStore {
     public void MergeFrom(CheckRequest other) {
       if (other == null) {
         return;
+      }
+      if (other.ServerId != 0) {
+        ServerId = other.ServerId;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -961,6 +989,10 @@ namespace GigaStore {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
+          case 8: {
+            ServerId = input.ReadInt32();
+            break;
+          }
         }
       }
     #endif
@@ -975,6 +1007,10 @@ namespace GigaStore {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
+          case 8: {
+            ServerId = input.ReadInt32();
+            break;
+          }
         }
       }
     }

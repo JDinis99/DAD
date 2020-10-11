@@ -35,16 +35,19 @@ namespace GigaStore {
             "Y2F0ZVJlcGx5EhQKDHBhcnRpdGlvbl9pZBgBIAEoBRIRCglvYmplY3RfaWQY",
             "AiABKAUSDQoFdmFsdWUYAyABKAkiPgoTUmVwbGljYXRlTmV3UmVxdWVzdBIU",
             "CgxwYXJ0aXRpb25faWQYASABKAUSEQoJc2VydmVyX2lkGAIgASgFIhMKEVJl",
-            "cGxpY2F0ZU5ld1JlcGx5MpYDCglQcm9wYWdhdGUSNgoQUHJvcGFnYXRlU2Vy",
-            "dmVycxIRLlByb3BhZ2F0ZVJlcXVlc3QaDy5Qcm9wYWdhdGVSZXBseRInCgtM",
-            "b2NrU2VydmVycxIMLkxvY2tSZXF1ZXN0GgouTG9ja1JlcGx5Ej4KGFByb3Bh",
-            "Z2F0ZVNlcnZlcnNBZHZhbmNlZBIRLlByb3BhZ2F0ZVJlcXVlc3QaDy5Qcm9w",
-            "YWdhdGVSZXBseRIsCgxDaGFuZ2VNYXN0ZXISDi5DaGFuZ2VSZXF1ZXN0Ggwu",
-            "Q2hhbmdlUmVwbHkSRAoYQ2hhbmdlTWFzdGVyTm90aWZpY2F0aW9uEhouQ2hh",
-            "bmdlTm90aWZpY2F0aW9uUmVxdWVzdBoMLkNoYW5nZVJlcGx5EjgKDFJlcGxp",
-            "Y2F0ZU5ldxIULlJlcGxpY2F0ZU5ld1JlcXVlc3QaEi5SZXBsaWNhdGVOZXdS",
-            "ZXBseRI6ChJSZXBsaWNhdGVQYXJ0aXRpb24SES5SZXBsaWNhdGVSZXF1ZXN0",
-            "Gg8uUmVwbGljYXRlUmVwbHkwAUIMqgIJR2lnYVN0b3JlYgZwcm90bzM="));
+            "cGxpY2F0ZU5ld1JlcGx5IhUKE0NoZWNrU2VydmVyc1JlcXVlc3QiEwoRQ2hl",
+            "Y2tTZXJ2ZXJzUmVwbHky1gMKCVByb3BhZ2F0ZRI2ChBQcm9wYWdhdGVTZXJ2",
+            "ZXJzEhEuUHJvcGFnYXRlUmVxdWVzdBoPLlByb3BhZ2F0ZVJlcGx5EicKC0xv",
+            "Y2tTZXJ2ZXJzEgwuTG9ja1JlcXVlc3QaCi5Mb2NrUmVwbHkSPgoYUHJvcGFn",
+            "YXRlU2VydmVyc0FkdmFuY2VkEhEuUHJvcGFnYXRlUmVxdWVzdBoPLlByb3Bh",
+            "Z2F0ZVJlcGx5EiwKDENoYW5nZU1hc3RlchIOLkNoYW5nZVJlcXVlc3QaDC5D",
+            "aGFuZ2VSZXBseRJEChhDaGFuZ2VNYXN0ZXJOb3RpZmljYXRpb24SGi5DaGFu",
+            "Z2VOb3RpZmljYXRpb25SZXF1ZXN0GgwuQ2hhbmdlUmVwbHkSOAoMUmVwbGlj",
+            "YXRlTmV3EhQuUmVwbGljYXRlTmV3UmVxdWVzdBoSLlJlcGxpY2F0ZU5ld1Jl",
+            "cGx5EjoKElJlcGxpY2F0ZVBhcnRpdGlvbhIRLlJlcGxpY2F0ZVJlcXVlc3Qa",
+            "Dy5SZXBsaWNhdGVSZXBseTABEj4KEkNoZWNrU3RhdHVzU2VydmVycxIULkNo",
+            "ZWNrU2VydmVyc1JlcXVlc3QaEi5DaGVja1NlcnZlcnNSZXBseUIMqgIJR2ln",
+            "YVN0b3JlYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
@@ -58,7 +61,9 @@ namespace GigaStore {
             new pbr::GeneratedClrTypeInfo(typeof(global::GigaStore.ReplicateRequest), global::GigaStore.ReplicateRequest.Parser, new[]{ "PartitionId" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::GigaStore.ReplicateReply), global::GigaStore.ReplicateReply.Parser, new[]{ "PartitionId", "ObjectId", "Value" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::GigaStore.ReplicateNewRequest), global::GigaStore.ReplicateNewRequest.Parser, new[]{ "PartitionId", "ServerId" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::GigaStore.ReplicateNewReply), global::GigaStore.ReplicateNewReply.Parser, null, null, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::GigaStore.ReplicateNewReply), global::GigaStore.ReplicateNewReply.Parser, null, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::GigaStore.CheckServersRequest), global::GigaStore.CheckServersRequest.Parser, null, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::GigaStore.CheckServersReply), global::GigaStore.CheckServersReply.Parser, null, null, null, null, null)
           }));
     }
     #endregion
@@ -2027,6 +2032,278 @@ namespace GigaStore {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void MergeFrom(ReplicateNewReply other) {
+      if (other == null) {
+        return;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+        }
+      }
+    }
+    #endif
+
+  }
+
+  public sealed partial class CheckServersRequest : pb::IMessage<CheckServersRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<CheckServersRequest> _parser = new pb::MessageParser<CheckServersRequest>(() => new CheckServersRequest());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<CheckServersRequest> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::GigaStore.PropagateReflection.Descriptor.MessageTypes[11]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public CheckServersRequest() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public CheckServersRequest(CheckServersRequest other) : this() {
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public CheckServersRequest Clone() {
+      return new CheckServersRequest(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as CheckServersRequest);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(CheckServersRequest other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(CheckServersRequest other) {
+      if (other == null) {
+        return;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+        }
+      }
+    }
+    #endif
+
+  }
+
+  public sealed partial class CheckServersReply : pb::IMessage<CheckServersReply>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<CheckServersReply> _parser = new pb::MessageParser<CheckServersReply>(() => new CheckServersReply());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<CheckServersReply> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::GigaStore.PropagateReflection.Descriptor.MessageTypes[12]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public CheckServersReply() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public CheckServersReply(CheckServersReply other) : this() {
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public CheckServersReply Clone() {
+      return new CheckServersReply(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as CheckServersReply);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(CheckServersReply other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(CheckServersReply other) {
       if (other == null) {
         return;
       }

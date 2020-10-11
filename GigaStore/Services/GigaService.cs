@@ -73,10 +73,11 @@ namespace GigaStore.Services
 
         }
 
-        public override Task<CheckReply> CheckStatus(CheckRequest request, ServerCallContext context)
+        public override async Task<CheckReply> CheckStatus(CheckRequest request, ServerCallContext context)
         {
-            Console.WriteLine("Checking status");
-            return Task.FromResult( new CheckReply
+            Console.WriteLine("Checking status of server " + request.ServerId);
+            await _gigaStorage.CheckStatusAsync(request.ServerId);
+            return await Task.FromResult(new CheckReply
             {
                 // Empty message as ack
             });

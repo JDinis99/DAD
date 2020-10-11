@@ -53,6 +53,8 @@ namespace GigaStore {
     static readonly grpc::Marshaller<global::GigaStore.ReplicateNewReply> __Marshaller_ReplicateNewReply = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::GigaStore.ReplicateNewReply.Parser));
     static readonly grpc::Marshaller<global::GigaStore.ReplicateRequest> __Marshaller_ReplicateRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::GigaStore.ReplicateRequest.Parser));
     static readonly grpc::Marshaller<global::GigaStore.ReplicateReply> __Marshaller_ReplicateReply = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::GigaStore.ReplicateReply.Parser));
+    static readonly grpc::Marshaller<global::GigaStore.CheckServersRequest> __Marshaller_CheckServersRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::GigaStore.CheckServersRequest.Parser));
+    static readonly grpc::Marshaller<global::GigaStore.CheckServersReply> __Marshaller_CheckServersReply = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::GigaStore.CheckServersReply.Parser));
 
     static readonly grpc::Method<global::GigaStore.PropagateRequest, global::GigaStore.PropagateReply> __Method_PropagateServers = new grpc::Method<global::GigaStore.PropagateRequest, global::GigaStore.PropagateReply>(
         grpc::MethodType.Unary,
@@ -103,6 +105,13 @@ namespace GigaStore {
         __Marshaller_ReplicateRequest,
         __Marshaller_ReplicateReply);
 
+    static readonly grpc::Method<global::GigaStore.CheckServersRequest, global::GigaStore.CheckServersReply> __Method_CheckStatusServers = new grpc::Method<global::GigaStore.CheckServersRequest, global::GigaStore.CheckServersReply>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "CheckStatusServers",
+        __Marshaller_CheckServersRequest,
+        __Marshaller_CheckServersReply);
+
     /// <summary>Service descriptor</summary>
     public static global::Google.Protobuf.Reflection.ServiceDescriptor Descriptor
     {
@@ -144,6 +153,11 @@ namespace GigaStore {
       }
 
       public virtual global::System.Threading.Tasks.Task ReplicatePartition(global::GigaStore.ReplicateRequest request, grpc::IServerStreamWriter<global::GigaStore.ReplicateReply> responseStream, grpc::ServerCallContext context)
+      {
+        throw new grpc::RpcException(new grpc::Status(grpc::StatusCode.Unimplemented, ""));
+      }
+
+      public virtual global::System.Threading.Tasks.Task<global::GigaStore.CheckServersReply> CheckStatusServers(global::GigaStore.CheckServersRequest request, grpc::ServerCallContext context)
       {
         throw new grpc::RpcException(new grpc::Status(grpc::StatusCode.Unimplemented, ""));
       }
@@ -277,6 +291,22 @@ namespace GigaStore {
       {
         return CallInvoker.AsyncServerStreamingCall(__Method_ReplicatePartition, null, options, request);
       }
+      public virtual global::GigaStore.CheckServersReply CheckStatusServers(global::GigaStore.CheckServersRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return CheckStatusServers(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      public virtual global::GigaStore.CheckServersReply CheckStatusServers(global::GigaStore.CheckServersRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_CheckStatusServers, null, options, request);
+      }
+      public virtual grpc::AsyncUnaryCall<global::GigaStore.CheckServersReply> CheckStatusServersAsync(global::GigaStore.CheckServersRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return CheckStatusServersAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      public virtual grpc::AsyncUnaryCall<global::GigaStore.CheckServersReply> CheckStatusServersAsync(global::GigaStore.CheckServersRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_CheckStatusServers, null, options, request);
+      }
       /// <summary>Creates a new instance of client from given <c>ClientBaseConfiguration</c>.</summary>
       protected override PropagateClient NewInstance(ClientBaseConfiguration configuration)
       {
@@ -295,7 +325,8 @@ namespace GigaStore {
           .AddMethod(__Method_ChangeMaster, serviceImpl.ChangeMaster)
           .AddMethod(__Method_ChangeMasterNotification, serviceImpl.ChangeMasterNotification)
           .AddMethod(__Method_ReplicateNew, serviceImpl.ReplicateNew)
-          .AddMethod(__Method_ReplicatePartition, serviceImpl.ReplicatePartition).Build();
+          .AddMethod(__Method_ReplicatePartition, serviceImpl.ReplicatePartition)
+          .AddMethod(__Method_CheckStatusServers, serviceImpl.CheckStatusServers).Build();
     }
 
     /// <summary>Register service method with a service binder with or without implementation. Useful when customizing the  service binding logic.
@@ -311,6 +342,7 @@ namespace GigaStore {
       serviceBinder.AddMethod(__Method_ChangeMasterNotification, serviceImpl == null ? null : new grpc::UnaryServerMethod<global::GigaStore.ChangeNotificationRequest, global::GigaStore.ChangeReply>(serviceImpl.ChangeMasterNotification));
       serviceBinder.AddMethod(__Method_ReplicateNew, serviceImpl == null ? null : new grpc::UnaryServerMethod<global::GigaStore.ReplicateNewRequest, global::GigaStore.ReplicateNewReply>(serviceImpl.ReplicateNew));
       serviceBinder.AddMethod(__Method_ReplicatePartition, serviceImpl == null ? null : new grpc::ServerStreamingServerMethod<global::GigaStore.ReplicateRequest, global::GigaStore.ReplicateReply>(serviceImpl.ReplicatePartition));
+      serviceBinder.AddMethod(__Method_CheckStatusServers, serviceImpl == null ? null : new grpc::UnaryServerMethod<global::GigaStore.CheckServersRequest, global::GigaStore.CheckServersReply>(serviceImpl.CheckStatusServers));
     }
 
   }

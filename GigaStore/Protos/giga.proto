@@ -32,7 +32,7 @@ message WriteReply {
 }
 
 message CheckRequest {
-
+	int32 server_id = 1;
 }
 
 message CheckReply {

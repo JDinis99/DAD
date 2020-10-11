@@ -12,6 +12,8 @@ service Propagate {
 
   rpc ReplicateNew (ReplicateNewRequest) returns (ReplicateNewReply);
   rpc ReplicatePartition (ReplicateRequest) returns (stream ReplicateReply);
+
+  rpc CheckStatusServers (CheckServersRequest) returns (CheckServersReply);
 }
 
 
@@ -63,5 +65,13 @@ message ReplicateNewRequest {
 }
 
 message ReplicateNewReply {
+
+}
+
+message CheckServersRequest {
+
+}
+
+message CheckServersReply {
 
 }
