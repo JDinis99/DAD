@@ -46,6 +46,8 @@ namespace GigaStore {
     static readonly grpc::Marshaller<global::GigaStore.ReadReply> __Marshaller_ReadReply = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::GigaStore.ReadReply.Parser));
     static readonly grpc::Marshaller<global::GigaStore.WriteRequest> __Marshaller_WriteRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::GigaStore.WriteRequest.Parser));
     static readonly grpc::Marshaller<global::GigaStore.WriteReply> __Marshaller_WriteReply = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::GigaStore.WriteReply.Parser));
+    static readonly grpc::Marshaller<global::GigaStore.ListServerRequest> __Marshaller_ListServerRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::GigaStore.ListServerRequest.Parser));
+    static readonly grpc::Marshaller<global::GigaStore.ListServerReply> __Marshaller_ListServerReply = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::GigaStore.ListServerReply.Parser));
     static readonly grpc::Marshaller<global::GigaStore.CheckRequest> __Marshaller_CheckRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::GigaStore.CheckRequest.Parser));
     static readonly grpc::Marshaller<global::GigaStore.CheckReply> __Marshaller_CheckReply = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::GigaStore.CheckReply.Parser));
 
@@ -62,6 +64,13 @@ namespace GigaStore {
         "Write",
         __Marshaller_WriteRequest,
         __Marshaller_WriteReply);
+
+    static readonly grpc::Method<global::GigaStore.ListServerRequest, global::GigaStore.ListServerReply> __Method_ListServer = new grpc::Method<global::GigaStore.ListServerRequest, global::GigaStore.ListServerReply>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "ListServer",
+        __Marshaller_ListServerRequest,
+        __Marshaller_ListServerReply);
 
     static readonly grpc::Method<global::GigaStore.ReadRequest, global::GigaStore.ReadReply> __Method_ReadAdvanced = new grpc::Method<global::GigaStore.ReadRequest, global::GigaStore.ReadReply>(
         grpc::MethodType.Unary,
@@ -100,6 +109,11 @@ namespace GigaStore {
       }
 
       public virtual global::System.Threading.Tasks.Task<global::GigaStore.WriteReply> Write(global::GigaStore.WriteRequest request, grpc::ServerCallContext context)
+      {
+        throw new grpc::RpcException(new grpc::Status(grpc::StatusCode.Unimplemented, ""));
+      }
+
+      public virtual global::System.Threading.Tasks.Task<global::GigaStore.ListServerReply> ListServer(global::GigaStore.ListServerRequest request, grpc::ServerCallContext context)
       {
         throw new grpc::RpcException(new grpc::Status(grpc::StatusCode.Unimplemented, ""));
       }
@@ -176,6 +190,22 @@ namespace GigaStore {
       {
         return CallInvoker.AsyncUnaryCall(__Method_Write, null, options, request);
       }
+      public virtual global::GigaStore.ListServerReply ListServer(global::GigaStore.ListServerRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return ListServer(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      public virtual global::GigaStore.ListServerReply ListServer(global::GigaStore.ListServerRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_ListServer, null, options, request);
+      }
+      public virtual grpc::AsyncUnaryCall<global::GigaStore.ListServerReply> ListServerAsync(global::GigaStore.ListServerRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return ListServerAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      public virtual grpc::AsyncUnaryCall<global::GigaStore.ListServerReply> ListServerAsync(global::GigaStore.ListServerRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_ListServer, null, options, request);
+      }
       public virtual global::GigaStore.ReadReply ReadAdvanced(global::GigaStore.ReadRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
       {
         return ReadAdvanced(request, new grpc::CallOptions(headers, deadline, cancellationToken));
@@ -238,6 +268,7 @@ namespace GigaStore {
       return grpc::ServerServiceDefinition.CreateBuilder()
           .AddMethod(__Method_Read, serviceImpl.Read)
           .AddMethod(__Method_Write, serviceImpl.Write)
+          .AddMethod(__Method_ListServer, serviceImpl.ListServer)
           .AddMethod(__Method_ReadAdvanced, serviceImpl.ReadAdvanced)
           .AddMethod(__Method_WriteAdvanced, serviceImpl.WriteAdvanced)
           .AddMethod(__Method_CheckStatus, serviceImpl.CheckStatus).Build();
@@ -251,6 +282,7 @@ namespace GigaStore {
     {
       serviceBinder.AddMethod(__Method_Read, serviceImpl == null ? null : new grpc::UnaryServerMethod<global::GigaStore.ReadRequest, global::GigaStore.ReadReply>(serviceImpl.Read));
       serviceBinder.AddMethod(__Method_Write, serviceImpl == null ? null : new grpc::UnaryServerMethod<global::GigaStore.WriteRequest, global::GigaStore.WriteReply>(serviceImpl.Write));
+      serviceBinder.AddMethod(__Method_ListServer, serviceImpl == null ? null : new grpc::UnaryServerMethod<global::GigaStore.ListServerRequest, global::GigaStore.ListServerReply>(serviceImpl.ListServer));
       serviceBinder.AddMethod(__Method_ReadAdvanced, serviceImpl == null ? null : new grpc::UnaryServerMethod<global::GigaStore.ReadRequest, global::GigaStore.ReadReply>(serviceImpl.ReadAdvanced));
       serviceBinder.AddMethod(__Method_WriteAdvanced, serviceImpl == null ? null : new grpc::UnaryServerMethod<global::GigaStore.WriteRequest, global::GigaStore.WriteReply>(serviceImpl.WriteAdvanced));
       serviceBinder.AddMethod(__Method_CheckStatus, serviceImpl == null ? null : new grpc::UnaryServerMethod<global::GigaStore.CheckRequest, global::GigaStore.CheckReply>(serviceImpl.CheckStatus));

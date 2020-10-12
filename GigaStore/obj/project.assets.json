@@ -695,19 +695,19 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\JDinis\\.nuget\\packages\\": {}
+    "C:\\Users\\duarte\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\JDinis99\\IST\\DAD\\GigaStore\\GigaStore.csproj",
+      "projectUniqueName": "C:\\Users\\duarte\\Documents\\GitHub\\DAD\\GigaStore\\GigaStore.csproj",
       "projectName": "GigaStore",
-      "projectPath": "C:\\Users\\JDinis99\\IST\\DAD\\GigaStore\\GigaStore.csproj",
-      "packagesPath": "C:\\Users\\JDinis\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\JDinis99\\IST\\DAD\\GigaStore\\obj\\",
+      "projectPath": "C:\\Users\\duarte\\Documents\\GitHub\\DAD\\GigaStore\\GigaStore.csproj",
+      "packagesPath": "C:\\Users\\duarte\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\duarte\\Documents\\GitHub\\DAD\\GigaStore\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\JDinis\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\duarte\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [

@@ -1,8 +1,6 @@
 ﻿using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace GigaStore.Services
@@ -19,6 +17,11 @@ namespace GigaStore.Services
             _gigaStorage = GigaStorage.GetGigaStorage();
         }
 
+        /*
+         * Base Version
+         * 
+         */
+
         public override Task<ReadReply> Read(ReadRequest request, ServerCallContext context)
         {
             Console.WriteLine("Client contacted server " + request.ServerId + " and reached " + _gigaStorage.GetServerId());
@@ -33,17 +36,48 @@ namespace GigaStore.Services
         public override Task<WriteReply> Write(WriteRequest request, ServerCallContext context)
         {
             Console.WriteLine("WRITE");
-            if (!_gigaStorage.isMaster(request.PartitionId))
+            var partition_id = request.PartitionId;
+            if (!_gigaStorage.isMaster(partition_id))
             {
-                // TODO lancar uma execao
-                Console.WriteLine("PARTICAO ERRADA");
+                Console.WriteLine("This is not the master server for this partition.");
+                return Task.FromResult(new WriteReply
+                {
+                    MasterId = _gigaStorage.getMaster(partition_id)
+                });
             }
+
             _gigaStorage.Write(request.PartitionId, request.ObjectId, request.Value);
+
             return Task.FromResult(new WriteReply
             {
-                // Empty message as ack
+                // The current server is already the master for this partition
+                MasterId = -1
             });
         }
+
+        public override Task<ListServerReply> ListServer(ListServerRequest request, ServerCallContext context)
+        {
+            var reply = new ListServerReply();
+
+            var objects = _gigaStorage.ListServer();
+            foreach (var obj in objects)
+            {
+                ListServerReply.Types.Object o = new ListServerReply.Types.Object
+                {
+                    PartitionId = obj.PartitionId,
+                    ObjectId = obj.ObjectId,
+                    Value = obj.Value,
+                    InMaster = _gigaStorage.isMaster(obj.PartitionId)
+                };
+                reply.Objects.Add(o);
+            }
+            return Task.FromResult(reply);
+        }
+
+        /*
+         * Advanced Version
+         * 
+         */
 
         public override Task<ReadReply> ReadAdvanced(ReadRequest request, ServerCallContext context)
         {

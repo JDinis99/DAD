@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\JDinis99\\IST\\DAD\\GigaClient\\GigaClient.csproj": {}
+    "C:\\Users\\duarte\\Documents\\GitHub\\DAD\\GigaClient\\GigaClient.csproj": {}
   },
   "projects": {
-    "C:\\Users\\JDinis99\\IST\\DAD\\GigaClient\\GigaClient.csproj": {
+    "C:\\Users\\duarte\\Documents\\GitHub\\DAD\\GigaClient\\GigaClient.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\JDinis99\\IST\\DAD\\GigaClient\\GigaClient.csproj",
+        "projectUniqueName": "C:\\Users\\duarte\\Documents\\GitHub\\DAD\\GigaClient\\GigaClient.csproj",
         "projectName": "GigaClient",
-        "projectPath": "C:\\Users\\JDinis99\\IST\\DAD\\GigaClient\\GigaClient.csproj",
-        "packagesPath": "C:\\Users\\JDinis\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\JDinis99\\IST\\DAD\\GigaClient\\obj\\",
+        "projectPath": "C:\\Users\\duarte\\Documents\\GitHub\\DAD\\GigaClient\\GigaClient.csproj",
+        "packagesPath": "C:\\Users\\duarte\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\duarte\\Documents\\GitHub\\DAD\\GigaClient\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\JDinis\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\duarte\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [

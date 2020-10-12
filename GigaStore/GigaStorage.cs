@@ -1,7 +1,6 @@
 ﻿using GigaStore.Domain;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Grpc.Net.Client;
 using static GigaStore.Propagate;
@@ -54,6 +53,7 @@ namespace GigaStore
             // +1 So the server_id and respective index in the array match
             _chanels = new GrpcChannel[_numberOfServers + 1];
             _clients = new PropagateClient[_numberOfServers + 1];
+            // _master: we assume that the number of partitions is the same as the number of servers
             _master = new int[_numberOfServers + 1];
             _down = new bool[_numberOfServers + 1];
             _servers = new List<List<int>>();
@@ -252,6 +252,24 @@ namespace GigaStore
             return value;
         }
 
+        public List<Object> ListServer()
+        {
+            var objects = new List<Object>();
+            foreach (int part in _gigaObjects.Keys)
+            {
+                foreach (var obj in _gigaObjects[part].Keys)
+                {
+                    Console.WriteLine("LOCKED READ partition: " + part + " object: " + obj);
+                    _semObjects[part][obj].WaitOne();
+                    string val = _gigaObjects[part][obj];
+                    _semObjects[part][obj].Release();
+                    Console.WriteLine("UNLOCKED READ partition: " + part + " object: " + obj);
+                    var o = new Object(part, obj, val);
+                    objects.Add(o);
+                }
+            }
+            return objects;
+        }
 
 
         /*
@@ -318,7 +336,7 @@ namespace GigaStore
         // Notifies new master and all other servers that down_server_id is down and that new_server_id is the new master
         public async void ChangeMasterRequest(int down_server_id, int new_server_id)
         {
-
+            // TODO modulo do novo server_id
             Console.WriteLine("Server: " + down_server_id + " is down");
             try
             {
@@ -537,6 +555,24 @@ namespace GigaStore
             _numberOfServers = numberOfServers;
         }
 
+        public int getMaster(int partition_id)
+        {
+            return _master[partition_id];
+        }
+
+    }
+    public class Object
+    {
+        public int PartitionId { get; }
+        public int ObjectId { get; }
+        public string Value { get; }
+
+        public Object(int partitionId, int objectId, string value)
+        {
+            PartitionId = partitionId;
+            ObjectId = objectId;
+            Value = value;
+        }
     }
 
 }

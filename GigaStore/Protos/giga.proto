@@ -5,6 +5,7 @@ option csharp_namespace = "GigaStore";
 service Giga {
   rpc Read (ReadRequest) returns (ReadReply);
   rpc Write (WriteRequest) returns (WriteReply);
+  rpc ListServer (ListServerRequest) returns (ListServerReply);
 
   rpc ReadAdvanced (ReadRequest) returns (ReadReply);
   rpc WriteAdvanced (WriteRequest) returns (WriteReply);
@@ -28,7 +29,21 @@ message WriteRequest {
 }
 
 message WriteReply {
-	
+	int32 master_id = 1;
+}
+
+message ListServerRequest {
+
+}
+
+message ListServerReply {
+	message Object {
+		int32 partition_id = 1;
+		int32 object_id = 2;
+		string value = 3;
+		bool in_master = 4;
+	}
+	repeated Object objects = 1;
 }
 
 message CheckRequest {
