@@ -74,30 +74,19 @@ namespace GigaStore.Services
 
         }
 
-        public override async Task ReplicatePartition(ReplicateRequest request, IServerStreamWriter<ReplicateReply> responseStream, ServerCallContext context)
+        public override async Task<ReplicateReply> ReplicatePartition(IAsyncStreamReader<ReplicateRequest> requestStream, ServerCallContext context)
         {
-            Dictionary<int, string> partition = _gigaStorage.getPartition(request.PartitionId);
-            foreach(KeyValuePair<int, string> entry in partition)
+            Console.WriteLine("Being Asked to replicate");
+            while (await requestStream.MoveNext())
             {
-                await responseStream.WriteAsync(new ReplicateReply
-                {
-                    PartitionId = request.PartitionId,
-                    ObjectId = entry.Key,
-                    Value = entry.Value
-                });
+                var replicateRequest = requestStream.Current;
+                Console.WriteLine("Stroring Partition: " + replicateRequest.PartitionId + " Obejct " + replicateRequest.ObjectId + " Value " + replicateRequest.Value);
+                _gigaStorage.StoreAdvanced(replicateRequest.PartitionId, replicateRequest.ObjectId, replicateRequest.Value);
             }
-        }
-
-        public override async Task<ReplicateNewReply> ReplicateNew(ReplicateNewRequest request, ServerCallContext context)
-        {
-            Console.WriteLine("Asked to Replicate: " + request.PartitionId + " from server " + request.ServerId);
-
-            await _gigaStorage.ReplicateNewAsync(request.PartitionId, request.ServerId);
-            return await Task.FromResult(new ReplicateNewReply
+            return await Task.FromResult(new ReplicateReply
             {
                 // Empty message as ack
             });
-
         }
     }
 }

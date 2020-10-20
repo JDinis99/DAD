@@ -462,7 +462,6 @@ namespace GigaStore
                     // If not enough servers propagate
                     if (_servers[i].Count < _aliveServers / 2)
                     {
-                        ReplicateNewRequest replicateNewRequest = new ReplicateNewRequest { PartitionId = i, ServerId = _serverId};
                         int server_id;
                         for (int x = i + 1; x != i; x++)
                         {
@@ -479,7 +478,19 @@ namespace GigaStore
                             try
                             {
                                 Console.WriteLine("Asking server: " + server_id + " to replicate partition: " + i);
-                                await _clients[server_id].ReplicateNewAsync(replicateNewRequest);
+                                var replicateRequest = _clients[server_id].ReplicatePartition();
+                                foreach (KeyValuePair<int, string> entry in _gigaObjects[i])
+                                {
+                                    await replicateRequest.RequestStream.WriteAsync(new ReplicateRequest
+                                    {
+                                        PartitionId = i,
+                                        ObjectId = entry.Key,
+                                        Value = entry.Value
+                                    });
+
+                                }
+                                await replicateRequest.RequestStream.CompleteAsync();
+
                                 break;
                             }
                             catch
@@ -502,25 +513,6 @@ namespace GigaStore
         {
             return _gigaObjects[parttion_id];
         } 
-        public async Task ReplicateNewAsync (int partition_id, int server_id)
-        {
-            try
-            {
-                ReplicateRequest replicateRequest = new ReplicateRequest { PartitionId = partition_id };
-                var objects = _clients[server_id].ReplicatePartition(replicateRequest);
-
-                await foreach (var giga in objects.ResponseStream.ReadAllAsync())
-                {
-                    Console.WriteLine("REPLICATE PARTITIOM P: " + giga.PartitionId + " ID: " + giga.ObjectId + " Value: " + giga.Value);
-                    _gigaObjects.Add(giga.PartitionId, giga.ObjectId, giga.Value);
-                }
-            }
-            catch
-            {
-                // Already accounted for
-            }
-            
-        }
 
         // TODO Test this
         // Checks status of server_id in case a client suspects is down
