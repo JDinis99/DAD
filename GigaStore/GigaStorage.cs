@@ -6,6 +6,7 @@ using Grpc.Net.Client;
 using static GigaStore.Propagate;
 using System.Threading;
 using Grpc.Core;
+using System.Drawing.Printing;
 
 namespace GigaStore
 {
@@ -336,7 +337,11 @@ namespace GigaStore
         // Notifies new master and all other servers that down_server_id is down and that new_server_id is the new master
         public async void ChangeMasterRequest(int down_server_id, int new_server_id)
         {
-            // TODO modulo do novo server_id
+            new_server_id = new_server_id % (_numberOfServers + 1);
+            if (new_server_id == 0) new_server_id = 1;
+
+            Console.WriteLine("DownServer: " + down_server_id + " NewServer: " + new_server_id);
+            
             Console.WriteLine("Server: " + down_server_id + " is down");
             try
             {
@@ -462,23 +467,21 @@ namespace GigaStore
                     // If not enough servers propagate
                     if (_servers[i].Count < _aliveServers / 2)
                     {
-                        int server_id;
-                        for (int x = i + 1; x != i; x++)
+                        for (int x = i + 1; x != i;)
                         {
-                            server_id = x;
-                            if (server_id > _numberOfServers)
+                            if (x > _numberOfServers)
                             {
-                                server_id = server_id - _numberOfServers;
+                                x -= _numberOfServers;
                             }
 
-                            if (_down[server_id] || _servers[i].Contains(server_id))
+                            if (_down[x] || _servers[i].Contains(x))
                             {
                                 continue;
                             }
                             try
                             {
-                                Console.WriteLine("Asking server: " + server_id + " to replicate partition: " + i);
-                                var replicateRequest = _clients[server_id].ReplicatePartition();
+                                Console.WriteLine("Asking server: " + x + " to replicate partition: " + i);
+                                var replicateRequest = _clients[x].ReplicatePartition();
                                 foreach (KeyValuePair<int, string> entry in _gigaObjects[i])
                                 {
                                     await replicateRequest.RequestStream.WriteAsync(new ReplicateRequest
@@ -526,7 +529,7 @@ namespace GigaStore
             catch
             {
                 // If server is down
-                ChangeMasterRequest(server_id, _serverId + 1);
+                ChangeMasterRequest(server_id, server_id + 1);
             }
         }
 

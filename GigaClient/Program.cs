@@ -1,8 +1,6 @@
 ﻿using GigaStore;
-using Grpc.Net.Client;
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,26 +8,57 @@ namespace GigaClient
 {
     class Program
     {
+        private static readonly string USAGE = "Usage: dotnet run n_servers";
+        private static readonly string UNKNOWN_COMMAND = "Unknown command.";
+
+        private static readonly string HELP_STRING =
+            "---------------------------------------\n" +
+            "> read partition_id object_id server_id\n" +
+            "Reads the object identified by the (partition_id, object_id) pair and outputs (onscreen and eventually to a log) the corresponding value.\n" +
+            "It should return the string 'N/A' if the object is not present in the storage system. If the server that the clientis currently attached to does not hold the requested object, the client will use the 'server_id' parameter to try to find the object at the 'server_id' server.\n" +
+            "If the client does not need to change server to obtain the requested object or if the 'server_id' parameter is '-1', the parameter should be ignored.\n" +
+            "\n" +
+            "> write partition_id object_id value\n" +
+            "Writes the object identified by the (partition_id, object_id) pair and assigns it the quotes delimited string 'value' (e.g. \"a possible stored value\").\n" +
+            "\n" +
+            "> listServer server_id\n" +
+            "Lists all objects stored on the server identified by 'server_id' and whether the server is the master replica for that object or not.\n" +
+            "\n" +
+            "> listGlobal\n" +
+            "Lists the partition and object identifiers of all objects stored on the system.\n" +
+            "\n" +
+            "> wait x\n" +
+            "Delays the execution of the next command for 'x' milliseconds.\n" +
+            "\n" +
+            "> begin-repeat x\n" +
+            "Repeats 'x' number of times the commands following this command and before the next 'end-repeat'.\n" +
+            "It is not possible to have another 'begin-repeat' command before this loop is closed by a 'end-repeat' command.\n" +
+            "Within the repeat cycle any occurrence of the string '$i' should be replaced by the number of the iteration of that cycle being performed, from '0' to 'x−1'.\n" +
+            "\n" +
+            "> end-repeat\n" +
+            "Closes a repeat loop.\n" +
+            "---------------------------------------";
+
+
         static async Task Main(string[] args)
         {
             /* add shutdown hook in order to close the client */
-            // Console.CancelKeyPress += new ConsoleCancelEventHandler(ShutdownHook);
+            //Console.CancelKeyPress += new ConsoleCancelEventHandler(ShutdownHook);
 
             /* receive and print arguments */
-            Console.WriteLine($"Received {args.Length} arguments.");
+            Console.WriteLine($"Received {args.Length} arguments:");
             for (int i = 0; i < args.Length; i++)
-                Console.WriteLine($"arg[{i}] = {args[i]}");
+                Console.WriteLine($"  arg[{i}] = {args[i]}");
 
             /* check arguments amount */
             if (args.Length != 1)
             {
-                Console.WriteLine("Invalid amount of arguments.");
-                Console.WriteLine("Usage: dotnet run [n_servers]");
+                Console.WriteLine("Invalid amount of arguments.\n" + USAGE);
                 return;
             }
 
             /* validate arguments */
-            if (!Int32.TryParse(args[0], out int n_servers) || n_servers <= 0)
+            if (!Int32.TryParse(args[0], out int nservers) || nservers <= 0)
             {
                 Console.WriteLine("'n_servers' must be a positive value of type Int32.");
                 return;
@@ -37,36 +66,25 @@ namespace GigaClient
 
             /* create a connection to the gRPC service */
             var random = new Random();
-            var instance = random.Next(n_servers);
-            // TODO (?) remove hard-coded, use json file
-            using var channel = GrpcChannel.ForAddress("https://localhost:500" + (instance + 1));
-            var client = new Giga.GigaClient(channel);
-            Console.WriteLine($"Connected to server {instance + 1}.");
-            // TODO find how to close channel/client and do it
+            var serverId = random.Next(nservers) + 1;
+            var frontend = new Frontend(serverId, nservers);
 
             /* read input */
             Console.WriteLine("Type a command ('help' for available commands).");
             do
             {
-                // FIXME (?) try catch not working outside of ExecInputAsync
+                // FIXME(?) try catch not working outside of ExecInputAsync
                 Console.Write("> ");
                 string line = Console.ReadLine();
                 if (line != null && line != "")
-                    await ExecInputAsync(client, n_servers, line, false);
+                    await ExecInputAsync(frontend, line, false);
 
             } while (true);
 
         }
 
 
-        private static void ShutdownHook(object sender, EventArgs args)
-        {
-            // TODO close connection
-            Console.WriteLine("Press any key to exit...");
-            Console.ReadKey();
-        }
-
-        private static async Task ExecInputAsync(Giga.GigaClient client, int n_servers, string line, bool repeat)
+        private static async Task ExecInputAsync(Frontend frontend, string line, bool repeat)
         {
             try
             {
@@ -74,35 +92,25 @@ namespace GigaClient
 
                 if (String.Equals(words[0], "read") && words.Length == 4)
                 {
-                    int partition_id = Int32.Parse(words[1]);
-                    int object_id = Int32.Parse(words[2]);
-                    int server_id = Int32.Parse(words[3]);
+                    int partitionId = Int32.Parse(words[1]);
+                    int objectId = Int32.Parse(words[2]);
+                    int serverId = Int32.Parse(words[3]);
 
                     var readRequest = new ReadRequest
                     {
-                        PartitionId = partition_id,
-                        ObjectId = object_id,
-                        ServerId = server_id
+                        PartitionId = partitionId,
+                        ObjectId = objectId,
+                        ServerId = serverId
                     };
-                    var readReply = await client.ReadAsync(readRequest);
+
+                    var readReply = await frontend.ReadAsync(readRequest);
                     Console.WriteLine(readReply.Value);
-
-                    if (String.Equals(readReply.Value, "N/A") && server_id != -1)
-                    {
-                        Console.Write($"Connecting to server {server_id}... ");
-                        using var channel = GrpcChannel.ForAddress("https://localhost:500" + server_id);
-                        client = new Giga.GigaClient(channel);
-                        Console.WriteLine("Connected.");
-
-                        readReply = await client.ReadAsync(readRequest);
-                        Console.WriteLine(readReply.Value);
-                    }
 
                 }
                 else if (String.Equals(words[0], "write") && words.Length > 3)
                 {
-                    int partition_id = Int32.Parse(words[1]);
-                    int object_id = Int32.Parse(words[2]);
+                    int partitionId = Int32.Parse(words[1]);
+                    int objectId = Int32.Parse(words[2]);
 
                     // parse 'value' from input
                     string value;
@@ -113,75 +121,53 @@ namespace GigaClient
                         int valueLength = secondQuote + 1 - firstQuote; // include quotes
                         value = line.Substring(firstQuote, valueLength);
                         if (line.Substring(secondQuote + 1).Trim() != "")
-                            throw new InvalidOperationException("Unknown command.");
+                            throw new InvalidOperationException(UNKNOWN_COMMAND);
                     }
                     catch (ArgumentOutOfRangeException)
                     {
-                        throw new InvalidOperationException("Unknown command.");
+                        throw new InvalidOperationException(UNKNOWN_COMMAND);
                     }
 
                     var writeRequest = new WriteRequest
                     {
-                        PartitionId = partition_id,
-                        ObjectId = object_id,
+                        PartitionId = partitionId,
+                        ObjectId = objectId,
                         Value = value
                     };
-                    var writeReply = await client.WriteAsync(writeRequest);
 
-                    var master_id = writeReply.MasterId;
-                    if (master_id != -1)
-                    {
-                        Console.Write($"Connecting to master server (id: {master_id}) for partition {partition_id}... ");
-                        using var channel = GrpcChannel.ForAddress("https://localhost:500" + master_id);
-                        client = new Giga.GigaClient(channel);
-                        Console.WriteLine("Connected.");
-
-                        writeReply = await client.WriteAsync(writeRequest);
-                    }
-
+                    var writeReply = await frontend.WriteAsync(writeRequest);
                     Console.WriteLine("Write operation was sucessfull.");
 
                 }
                 else if (String.Equals(words[0], "listServer") && words.Length == 2)
                 {
-                    int server_id = Int32.Parse(words[1]);
-
-                    // FIXME if same server as current, dont start new connection
-                    Console.Write($"Connecting to server {server_id}... ");
-                    using var channel = GrpcChannel.ForAddress("https://localhost:500" + server_id);
-                    client = new Giga.GigaClient(channel);
-                    Console.WriteLine("Connected.");
+                    int serverId = Int32.Parse(words[1]);
 
                     var listServerRequest = new ListServerRequest();
-                    var listServerReply = await client.ListServerAsync(listServerRequest);
+                    var listServerReply = await frontend.ListServerAsync(listServerRequest, serverId);
 
-                    // TODO (?) write message for empty results
+                    // TODO write message for empty results
                     Console.WriteLine("PartitionId | ObjectId | Value | In Master?");
                     foreach (var o in listServerReply.Objects)
                     {
                         string inMaster = o.InMaster ? "Yes" : "No";
-                        // FIXME insert tabs
+                        // TODO insert tabs
                         Console.WriteLine($"{o.PartitionId} | {o.ObjectId} | {o.Value} | {inMaster}");
                     }
 
                 }
                 else if (String.Equals(words[0], "listGlobal") && words.Length == 1)
                 {
-                    var listServerRequest = new ListServerRequest();
-                    for (int server_id = 1; server_id <= n_servers; server_id++)
+                    var listGloabalRequest = new ListServerRequest();
+                    var listGlobalReply = await frontend.ListGlobalAsync(listGloabalRequest);
+
+                    for (var serverId = 1; serverId < listGlobalReply.Length; serverId++)
                     {
-                        Console.Write($"Connecting to server {server_id}... ");
-                        using var channel = GrpcChannel.ForAddress("https://localhost:500" + server_id);
-                        client = new Giga.GigaClient(channel);
-                        Console.WriteLine("Connected.");
-
-                        var listServerReply = await client.ListServerAsync(listServerRequest);
-
-                        // TODO (?) write message for empty results
-                        Console.WriteLine($"[SERVER {server_id}]");
-                        foreach (var o in listServerReply.Objects)
+                        // TODO write message for empty results
+                        Console.WriteLine($"[SERVER {serverId}]");
+                        foreach (var obj in listGlobalReply[serverId].Objects)
                         {
-                            Console.WriteLine($"  PartitionId: {o.PartitionId}, ObjectId: {o.ObjectId}");
+                            Console.WriteLine($"  PartitionId: {obj.PartitionId}, ObjectId: {obj.ObjectId}");
                         }
                     }
 
@@ -217,7 +203,7 @@ namespace GigaClient
                         foreach (var c in commands)
                         {
                             command = c.Replace("$i", i.ToString());
-                            await ExecInputAsync(client, n_servers, command, true);
+                            await ExecInputAsync(frontend, command, true);
                         }
                     }
 
@@ -230,20 +216,12 @@ namespace GigaClient
                 }
                 else if (String.Equals(words[0], "help") && words.Length == 1)
                 {
-                    // TODO help text
-                    Console.Write("  .d88b.   .d88b.  d88888b \n" +
-                                  " .8P  Y8. .8P  Y8. 88'     \n" +
-                                  " 88    88 88    88 88ooo   \n" +
-                                  " 88    88 88    88 88~~~   \n" +
-                                  " `8b  d8' `8b  d8' 88      \n" +
-                                  "  `Y88P'   `Y88P'  YP      \n");
+                    Console.WriteLine(HELP_STRING);
                 }
                 else
                 {
-                    throw new InvalidOperationException("Unknown command.");
+                    throw new InvalidOperationException(UNKNOWN_COMMAND);
                 }
-
-                // FIXME (?) atm the client always reconnects to the server in which he started
 
             }
             catch (FormatException e)
@@ -262,6 +240,25 @@ namespace GigaClient
             {
                 Console.WriteLine($"InvalidOperationException: {e.Message}");
             }
+            catch (Grpc.Core.RpcException e)
+            {
+                Console.WriteLine($"Grpc.Core.RpcException: {e.StatusCode}");
+                var checkRequest = new CheckRequest
+                {
+                    ServerId = frontend.ServerId
+                };
+                await frontend.CheckStatusAsync(checkRequest);
+            }
         }
+
+
+        private static void ShutdownHook(object sender, EventArgs args)
+        {
+            // FIXME ShutdownHook not working properly
+            // TODO close connection
+            Console.WriteLine("Press any key to exit...");
+            Console.ReadKey();
+        }
+
     }
 }

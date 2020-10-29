@@ -14,6 +14,30 @@ namespace GigaStore
     {
         public static void Main(string[] args)
         {
+            /* receive and print arguments */
+            Console.WriteLine($"Received {args.Length} arguments:");
+            for (int i = 0; i < args.Length; i++)
+                Console.WriteLine($"  arg[{i}] = {args[i]}");
+
+            /* check arguments amount */
+            if (args.Length != 2)
+            {
+                Console.WriteLine("Invalid amount of arguments.\n" + "Usage: dotnet run serverId nservers");
+                return;
+            }
+
+            /* validate arguments */
+            if (!Int32.TryParse(args[0], out int serverId) || serverId <= 0)
+            {
+                Console.WriteLine("'serverId' must be a positive value of type Int32.");
+                return;
+            }
+            if (!Int32.TryParse(args[1], out int nservers) || nservers <= 0)
+            {
+                Console.WriteLine("'n_servers' must be a positive value of type Int32.");
+                return;
+            }
+
             CreateHostBuilder(args).Build().Run();
         }
 
@@ -23,12 +47,16 @@ namespace GigaStore
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    string url = "https://localhost:500" + args[0];
+                    // FIXME variables already parsed and assigned
+                    var serverId = Int32.Parse(args[0]);
+                    var nservers = Int32.Parse(args[1]);
+
+                    string url = "https://localhost:500" + serverId;
                     GigaStorage giga = GigaStorage.GetGigaStorage();
                     webBuilder.UseUrls(url);
 
-                    giga.SetServerId(Int32.Parse(args[0]));
-                    giga.SetNumberOfServers(Int32.Parse(args[1]));
+                    giga.SetServerId(serverId);
+                    giga.SetNumberOfServers(nservers);
 
                     webBuilder.UseStartup<Startup>();
                 });
