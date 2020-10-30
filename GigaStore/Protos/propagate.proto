@@ -13,6 +13,8 @@ service Propagate {
   rpc ReplicatePartition (stream ReplicateRequest) returns (ReplicateReply);
 
   rpc CheckStatusServers (CheckServersRequest) returns (CheckServersReply);
+
+  rpc Ping (PingRequest) returns (PingReply);
 }
 
 
@@ -62,5 +64,13 @@ message CheckServersRequest {
 }
 
 message CheckServersReply {
+
+}
+
+message PingRequest {
+
+}
+
+message PingReply {
 
 }

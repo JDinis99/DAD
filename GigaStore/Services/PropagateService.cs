@@ -88,6 +88,16 @@ namespace GigaStore.Services
                 // Empty message as ack
             });
         }
+
+        public override async Task<PingReply> Ping(PingRequest request, ServerCallContext context)
+        {
+            Console.WriteLine("Pinged");
+            return await Task.FromResult(new PingReply
+            {
+                // Empty message as ack
+            });
+
+        }
     }
 }
 

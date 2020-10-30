@@ -95,6 +95,8 @@ namespace GigaStore
                 _servers[_serverId].Add(server_id);
             }
 
+            Thread t = new Thread(async () => await ThreadPing());
+            //t.Start();
             _inited = true;
         }
 
@@ -227,6 +229,7 @@ namespace GigaStore
         // Stores an object from propagation and releases the lock
         public void Store(int partition_id, int object_id, string value)
         {
+            Init();
             _gigaObjects.Add(partition_id, object_id, value);
             _semObjects[partition_id][object_id].Release();
 
@@ -326,6 +329,7 @@ namespace GigaStore
         // Stores value without blocking a semaphore
         public void StoreAdvanced(int partition_id, int object_id, string value)
         {
+            Init();
             _gigaObjects.Add(partition_id, object_id, value);
         }
 
@@ -337,11 +341,87 @@ namespace GigaStore
         // Notifies new master and all other servers that down_server_id is down and that new_server_id is the new master
         public async void ChangeMasterRequest(int down_server_id, int new_server_id)
         {
-            new_server_id = new_server_id % (_numberOfServers + 1);
-            if (new_server_id == 0) new_server_id = 1;
 
             Console.WriteLine("DownServer: " + down_server_id + " NewServer: " + new_server_id);
             
+            if (new_server_id > _numberOfServers)
+            {
+                new_server_id = new_server_id - _numberOfServers;
+            }
+
+            Console.WriteLine("Server: " + down_server_id + " is down");
+            try
+            {
+                Console.WriteLine("changing master from: " + down_server_id + " to " + new_server_id);
+
+                ChangeRequest changeRequest = new ChangeRequest { ServerId = down_server_id };
+                await _clients[new_server_id].ChangeMasterAsync(changeRequest);
+
+
+            }
+            catch
+            {
+                // Keep trying until it works with another server
+                ChangeMasterRequest(down_server_id, new_server_id + 1);
+                // If it failed, the new server is also down
+                ChangeMasterRequest(new_server_id, new_server_id + 1);
+            }
+
+            // If is the first time current server is notified about down server
+            if (!_down[down_server_id])
+            {
+                await masterUpdateAsync(down_server_id, new_server_id);
+                // Notify all other servers that old_server_id is down
+                for (int x = 1; x <= _numberOfServers; x++)
+                {
+                    // Ignore current server, new master and down servers
+                    if (x == _serverId || x == new_server_id || _down[x])
+                    {
+                        continue;
+                    }
+                    ChangeMasterNotificationRequest(down_server_id, x, new_server_id);
+                }
+            }
+        }
+
+        public async void ChangeMasterNoNoto(int down_server_id, int new_server_id)
+        {
+            if (new_server_id > _numberOfServers)
+            {
+                new_server_id = new_server_id - _numberOfServers;
+            }
+
+            Console.WriteLine("Server: " + down_server_id + " is down");
+            try
+            {
+                Console.WriteLine("changing master from: " + down_server_id + " to " + new_server_id);
+
+                ChangeRequest changeRequest = new ChangeRequest { ServerId = down_server_id };
+                await _clients[new_server_id].ChangeMasterAsync(changeRequest);
+
+
+            }
+            catch
+            {
+                // Keep trying until it works with another server
+                ChangeMasterNoNoto(down_server_id, new_server_id + 1);
+                // If it failed, the new server is also down
+                ChangeMasterNoNoto(new_server_id, new_server_id + 1);
+            }
+
+            if (!_down[down_server_id])
+            {
+                await masterUpdateAsync(down_server_id, new_server_id);
+            }
+        }
+
+            public async void ChangeMasterNoNotification(int down_server_id, int new_server_id)
+        {
+            if (new_server_id > _numberOfServers)
+            {
+                new_server_id = new_server_id - _numberOfServers;
+            }
+
             Console.WriteLine("Server: " + down_server_id + " is down");
             try
             {
@@ -464,6 +544,8 @@ namespace GigaStore
             {
                 if (_master[i] == _serverId)
                 {
+
+                    Console.WriteLine("MASTER OF PARTITION: " + i);
                     // If not enough servers propagate
                     if (_servers[i].Count < _aliveServers / 2)
                     {
@@ -474,8 +556,10 @@ namespace GigaStore
                                 x -= _numberOfServers;
                             }
 
-                            if (_down[x] || _servers[i].Contains(x))
+                            Console.WriteLine("Partition: " + i + " Server ID: " + x);
+                            if (_down[x] || _servers[i].Contains(x) || x == _serverId)
                             {
+                                x++;
                                 continue;
                             }
                             try
@@ -493,11 +577,12 @@ namespace GigaStore
 
                                 }
                                 await replicateRequest.RequestStream.CompleteAsync();
-
+                                x++;
                                 break;
                             }
                             catch
                             {
+                                x++;
                                 // skip this one
                             }
 
@@ -523,8 +608,11 @@ namespace GigaStore
         {
             try
             {
-                CheckServersRequest checkServersRequest = new CheckServersRequest { };
-                await _clients[server_id].CheckStatusServersAsync(checkServersRequest);
+                if (!_down[server_id])
+                {
+                    CheckServersRequest checkServersRequest = new CheckServersRequest { };
+                    await _clients[server_id].CheckStatusServersAsync(checkServersRequest);
+                }
             }
             catch
             {
@@ -533,6 +621,35 @@ namespace GigaStore
             }
         }
 
+
+        // Ping all other servers at 5sec intervals
+        public Task ThreadPing()
+        {
+            PingRequest pingRequest = new PingRequest { };
+            while (true)
+            {
+                for (int i = 1; i <= _numberOfServers; i++)
+                {
+                    if (_down[i] || i == _serverId)
+                    {
+                        continue;
+                    }
+                    try
+                    {
+                        Console.WriteLine("Pinging server: " + i);
+                        _clients[i].Ping(pingRequest);
+                    }
+                    catch
+                    {
+                        // If fails then the server is down
+                        Console.WriteLine("Server is down: " + i);
+                        ChangeMasterNoNoto(i, i + 1);
+                    }
+                }
+                Console.WriteLine("SLEEPING");
+                Thread.Sleep(5000);
+            }
+        }
 
 
         public void SetServerId(int serverId)
