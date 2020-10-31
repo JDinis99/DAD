@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GigaStore", "GigaStore\Giga
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GigaClient", "GigaClient\GigaClient.csproj", "{6FBBBE73-0720-4707-8069-DA05EBAF6825}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PuppetMaster", "PuppetMaster\PuppetMaster.csproj", "{B53286F5-7D25-4BC8-8DBE-2A4EEC0AE37A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{6FBBBE73-0720-4707-8069-DA05EBAF6825}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6FBBBE73-0720-4707-8069-DA05EBAF6825}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6FBBBE73-0720-4707-8069-DA05EBAF6825}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B53286F5-7D25-4BC8-8DBE-2A4EEC0AE37A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B53286F5-7D25-4BC8-8DBE-2A4EEC0AE37A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B53286F5-7D25-4BC8-8DBE-2A4EEC0AE37A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B53286F5-7D25-4BC8-8DBE-2A4EEC0AE37A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+option csharp_namespace = "GigaStore";
+
+service PuppetMaster {
+	rpc ReplicationFactor (ReplicationFactorRequest) returns (ReplicationFactorReply);
+	rpc ServerDelay (DelayRequest) returns (DelayReply);
+	rpc Partition (PartitionRequest) returns (PartitionReply);
+	rpc Status (StatusRequest) returns (StatusReply);
+}
+
+message ReplicationFactorRequest {
+	int32 servers = 1;
+}
+
+message ReplicationFactorReply {
+	string ack = 1;
+}
+
+message DelayRequest {
+	int32 delay = 1;
+}
+
+message DelayReply {
+	string ack = 1;
+}
+
+message PartitionRequest {
+	// TODO
+}
+
+message PartitionReply {
+	//TODO
+}
+
+message StatusRequest {
+
+}
+
+message StatusReply {
+	string ack = 1;
+}
