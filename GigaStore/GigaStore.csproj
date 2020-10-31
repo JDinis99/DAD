@@ -6,12 +6,15 @@
 
   <ItemGroup>
     <None Remove="Protos\giga.proto" />
+    <None Remove="Protos\puppetmaster.proto" />
   </ItemGroup>
 
   <ItemGroup>
     <Protobuf Include="Protos\giga.proto" />
     <Protobuf Include="Protos\greet.proto" GrpcServices="Both" />
 	<Protobuf Include="Protos\propagate.proto" GrpcServices="Both" />
+	<Protobuf Include="Protos\puppetmaster.proto" />
+	<Protobug Include="Protos\puppetmaster.proto" GrpcServices="Both" />
 
   </ItemGroup>
 

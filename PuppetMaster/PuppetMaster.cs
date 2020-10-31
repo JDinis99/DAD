@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using GigaStore;
+using Grpc.Net.Client;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,9 +14,24 @@ namespace PuppetMaster
 {
     public partial class PuppetMaster : Form
     {
+        private int no_servers = 5;
+        private GrpcChannel[] _channels; 
+        private GigaStore.PuppetMaster.PuppetMasterClient[] _puppetServerClients;
         public PuppetMaster()
         {
             InitializeComponent();
+            Init();
+        }
+
+        private void Init()
+        {
+            _channels = new GrpcChannel[no_servers + 1];
+            _puppetServerClients = new GigaStore.PuppetMaster.PuppetMasterClient[no_servers + 1];
+            for (int i = 1; i<=no_servers; i++)
+            {
+                _channels[i] = GrpcChannel.ForAddress("https://localhost:500" + i);
+                _puppetServerClients[i] = new GigaStore.PuppetMaster.PuppetMasterClient(_channels[i]);
+            }
         }
 
         private void BtReplicationClick(object sender, EventArgs e)
@@ -74,8 +91,12 @@ namespace PuppetMaster
 
         private void BtStatusClick(object sender, EventArgs e)
         {
+            var reply = _puppetServerClients[1].Status(new StatusRequest { });
             logger.AppendText("Asking nodes to print their statuses...");
             logger.AppendText(Environment.NewLine);
+            // ONLY FOR DEMO - NEED TO FIX
+            logger.AppendText(Environment.NewLine);
+            logger.AppendText(reply.Ack);
         }
 
         private void BtFreezeClick(object sender, EventArgs e)
@@ -112,6 +133,17 @@ namespace PuppetMaster
                 string serverId = form.serverId;
                 logger.AppendText("Crashing server with id " + serverId + "...");
                 logger.AppendText(Environment.NewLine);
+                var reply = _puppetServerClients[Int32.Parse(serverId)].CrashServer(new CrashRequest { });
+                if (reply.Ack.Equals("Success"))
+                {
+                    logger.AppendText("Server with id " + serverId + " successfully crashed");
+                    logger.AppendText(Environment.NewLine);
+                }
+                else if (reply.Ack.Equals("Unsuccess"))
+                {
+                    logger.AppendText("Server with id " + serverId + " couldn't crash");
+                    logger.AppendText(Environment.NewLine);
+                }
             }
         }
     }

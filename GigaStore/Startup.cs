@@ -36,6 +36,7 @@ namespace GigaStore
                 endpoints.MapGrpcService<GreeterService>();
                 endpoints.MapGrpcService<GigaService>();
                 endpoints.MapGrpcService<PropagateService>();
+                endpoints.MapGrpcService<PuppetMasterService>();
 
                 endpoints.MapGet("/", async context =>
                 {
