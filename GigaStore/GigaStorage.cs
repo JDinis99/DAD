@@ -143,7 +143,6 @@ namespace GigaStore
             _gigaObjects.Add(partition_id, object_id, value);
             _semObjects.Add(partition_id, object_id, new Semaphore(1, 1));
 
-
             // Stores the value on all servers that share this partition
             propagateRequest = new PropagateRequest { PartitionId = partition_id, ObjectId = object_id, Value = value };
             _handles = new AutoResetEvent[_servers[partition_id].Count];
@@ -151,7 +150,6 @@ namespace GigaStore
 
             for (int i = 0; i < _servers[partition_id].Count; i++)
             {
-                
                 Console.WriteLine("ServerID: " + i);
                 _handles[i] = new AutoResetEvent(false);
                 int t = i;
@@ -160,7 +158,6 @@ namespace GigaStore
 
                 threads[i] = new Thread(async () => await ThreadPropagateAsync(t, s, propagateRequestTmp));
                 Console.WriteLine("Value Propagated");
-
             }
 
             for (int x = 0; x < threads.Length; x++)
@@ -237,21 +234,21 @@ namespace GigaStore
             Console.WriteLine("UNLOCKED partition: " + partition_id + " object: " + object_id);
         }
 
-
         // Base Version Read
-        public string Read(int partition_id, int object_id)
+        public string Read(int partitionId, int objectId)
         {
             string value;
             try
             {
-                Console.WriteLine("LOCKED READ partition: " + partition_id + " object: " + object_id);
-                _semObjects[partition_id][object_id].WaitOne();
-                value = _gigaObjects[partition_id][object_id];
-                _semObjects[partition_id][object_id].Release();
-                Console.WriteLine("UNLOCKED READ partition: " + partition_id + " object: " + object_id);
+                _semObjects[partitionId][objectId].WaitOne();
+                Console.WriteLine($"[READ] Locked (partition {partitionId}, object {objectId}).");
+                value = _gigaObjects[partitionId][objectId];
+                _semObjects[partitionId][objectId].Release();
+                Console.WriteLine($"[READ] Unlocked (partition {partitionId}, object {objectId}).");
             }
             catch (KeyNotFoundException)
             {
+                // FIXME(?) deviamos criar um semaforo neste cenario?
                 value = "N/A";
             }
             return value;
@@ -260,16 +257,28 @@ namespace GigaStore
         public List<Object> ListServer()
         {
             var objects = new List<Object>();
-            foreach (int part in _gigaObjects.Keys)
+            foreach (var partitionId in _gigaObjects.Keys)
             {
-                foreach (var obj in _gigaObjects[part].Keys)
+                foreach (var objectId in _gigaObjects[partitionId].Keys)
                 {
-                    Console.WriteLine("LOCKED READ partition: " + part + " object: " + obj);
-                    _semObjects[part][obj].WaitOne();
-                    string val = _gigaObjects[part][obj];
-                    _semObjects[part][obj].Release();
-                    Console.WriteLine("UNLOCKED READ partition: " + part + " object: " + obj);
-                    var o = new Object(part, obj, val);
+                    try
+                    {
+                        _semObjects[partitionId][objectId].WaitOne();
+                    }
+                    catch (KeyNotFoundException e)
+                    {
+                        Console.WriteLine($"KeyNotFoundException: {e.Message}");
+                        // FIXME(?) deviamos criar um semaforo neste cenario?
+                        _semObjects.Add(partitionId, objectId, new Semaphore(1, 1));
+                        _semObjects[partitionId][objectId].WaitOne();
+                    }
+
+                    Console.WriteLine($"[READ] Locked (partition {partitionId}, object {objectId}).");
+                    string value = _gigaObjects[partitionId][objectId];
+                    _semObjects[partitionId][objectId].Release();
+                    Console.WriteLine($"[READ] Unlocked (partition {partitionId}, object {objectId}).");
+
+                    var o = new Object(partitionId, objectId, value);
                     objects.Add(o);
                 }
             }
@@ -281,7 +290,6 @@ namespace GigaStore
          * Advanced Version
          * 
          */
-
 
         // Advanced Version Write
         public void WriteAdvanced(int partition_id, int object_id, string value)
@@ -307,7 +315,6 @@ namespace GigaStore
                     // If fails then the server is down
                     ChangeMasterRequest(server_id, server_id + 1);
                 }
-
             }
             Console.WriteLine("Value Propagated");
         }
@@ -687,6 +694,4 @@ namespace GigaStore
             Value = value;
         }
     }
-
 }
-      

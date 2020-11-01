@@ -24,8 +24,6 @@ namespace GigaStore.Services
 
         public override Task<ReadReply> Read(ReadRequest request, ServerCallContext context)
         {
-            Console.WriteLine("Client contacted server " + request.ServerId + " and reached " + _gigaStorage.GetServerId());
-
             string value = _gigaStorage.Read(request.PartitionId, request.ObjectId);
             return Task.FromResult(new ReadReply
             {
@@ -35,14 +33,13 @@ namespace GigaStore.Services
 
         public override Task<WriteReply> Write(WriteRequest request, ServerCallContext context)
         {
-            Console.WriteLine("WRITE");
-            var partition_id = request.PartitionId;
-            if (!_gigaStorage.isMaster(partition_id))
+            var partitionId = request.PartitionId;
+            if (!_gigaStorage.isMaster(partitionId))
             {
                 Console.WriteLine("This is not the master server for this partition.");
                 return Task.FromResult(new WriteReply
                 {
-                    MasterId = _gigaStorage.getMaster(partition_id)
+                    MasterId = _gigaStorage.getMaster(partitionId)
                 });
             }
 

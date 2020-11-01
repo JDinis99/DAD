@@ -22,20 +22,20 @@ namespace GigaClient
         {
             _nservers = nservers;
             // TODO check if positive serverId (or in between 1 and _nservers)
-            UpdateFrontend(serverId);
+            EstablishChannel(serverId);
         }
 
-        private void UpdateFrontend(int serverId)
+        private void EstablishChannel(int serverId)
         {
             if (serverId != ServerId)
             {
-                Console.Write($"Connecting to server {serverId}... ");
+                Console.Write($"Establishing channel with server {serverId}... ");
                 if (_channel != null) _channel.ShutdownAsync().Wait();
                 // TODO(?) remove hard-coded, use json file or something
                 _channel = GrpcChannel.ForAddress("https://localhost:500" + serverId);
                 _client = new Giga.GigaClient(_channel);
                 ServerId = serverId;
-                Console.WriteLine("Connected.");
+                Console.WriteLine("Established.");
             }
         }
 
@@ -45,7 +45,7 @@ namespace GigaClient
 
             if (String.Equals(reply.Value, "N/A") && request.ServerId != -1)
             {
-                UpdateFrontend(request.ServerId);
+                EstablishChannel(request.ServerId);
                 reply = await _client.ReadAsync(request);
             }
 
@@ -58,8 +58,8 @@ namespace GigaClient
 
             if (reply.MasterId != -1)
             {
-                Console.WriteLine($"Connect to master server (id: {reply.MasterId}) for partition {request.PartitionId}.");
-                UpdateFrontend(reply.MasterId);
+                Console.WriteLine($"Establish a channel with the master server (id: {reply.MasterId}) of partition {request.PartitionId}.");
+                EstablishChannel(reply.MasterId);
                 reply = await _client.WriteAsync(request);
             }
 
@@ -68,8 +68,29 @@ namespace GigaClient
 
         public async Task<ListServerReply> ListServerAsync(ListServerRequest request, int serverId)
         {
-            UpdateFrontend(serverId);
+            /*
+            ListServerReply reply;
+            try
+            {
+                EstablishChannel(serverId);
+                reply = await _client.ListServerAsync(request);
+            }
+            catch (Grpc.Core.RpcException e)
+            {
+                Console.WriteLine($"Grpc.Core.RpcException: {e.StatusCode}");
+                var checkRequest = new CheckRequest
+                {
+                    ServerId = this.ServerId
+                };
+                await this.CheckStatusAsync(checkRequest);
+
+                reply = new ListServerReply(); // empty reply
+            }
+            */
+
+            EstablishChannel(serverId);
             var reply = await _client.ListServerAsync(request);
+
             return reply;
         }
 
@@ -78,8 +99,22 @@ namespace GigaClient
             ListServerReply[] reply = new ListServerReply[_nservers + 1]; // skip index 0
             for (int id = 1; id <= _nservers; id++)
             {
-                UpdateFrontend(id);
-                reply[id] = await _client.ListServerAsync(request);
+                try
+                {
+                    EstablishChannel(id);
+                    reply[id] = await _client.ListServerAsync(request);
+                }
+                catch (Grpc.Core.RpcException e)
+                {
+                    Console.WriteLine($"Grpc.Core.RpcException: {e.StatusCode}");
+                    var checkRequest = new CheckRequest
+                    {
+                        ServerId = this.ServerId
+                    };
+                    await this.CheckStatusAsync(checkRequest);
+
+                    reply[id] = new ListServerReply(); // empty reply
+                }
             }
 
             return reply;
@@ -91,10 +126,9 @@ namespace GigaClient
             try
             {
                 // connect to next server_id and check the status of the previous one
-                // FIXME increment or decrement? check newServerId in UpdateFrontend?
                 var newServerId = this.ServerId - 1;
                 if (newServerId == 0) newServerId = _nservers;
-                UpdateFrontend(newServerId);
+                EstablishChannel(newServerId);
                 reply = await _client.CheckStatusAsync(request);
 
             }

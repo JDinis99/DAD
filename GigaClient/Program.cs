@@ -213,6 +213,8 @@ namespace GigaClient
                     if (!repeat)
                         throw new InvalidOperationException("There isn't a repeat loop to close.");
 
+                    // FIXME throw error, should never enter here
+
                 }
                 else if (String.Equals(words[0], "help") && words.Length == 1)
                 {
