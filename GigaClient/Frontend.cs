@@ -1,6 +1,7 @@
 ﻿using GigaStore;
 using Grpc.Net.Client;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace GigaClient
@@ -12,18 +13,19 @@ namespace GigaClient
     class Frontend
     {
         // we assume sequential server ids i.e. from 1 to _nservers (inclusive)
-        private int _nservers;
+        private int _serversCount;
 
         public int ServerId { get; private set; } = -1;
         private GrpcChannel _channel = null;
         private Giga.GigaClient _client;
 
-        public Frontend(int serverId, int nservers)
+        public Frontend(int serverId, int serversCount)
         {
-            _nservers = nservers;
+            _serversCount = serversCount;
             // TODO check if positive serverId (or in between 1 and _nservers)
             EstablishChannel(serverId);
         }
+
 
         private void EstablishChannel(int serverId)
         {
@@ -41,12 +43,45 @@ namespace GigaClient
 
         public async Task<ReadReply> ReadAsync(ReadRequest request)
         {
-            var reply = await _client.ReadAsync(request);
-
-            if (String.Equals(reply.Value, "N/A") && request.ServerId != -1)
+            var reply = new ReadReply(); // empty reply;
+            try
             {
-                EstablishChannel(request.ServerId);
                 reply = await _client.ReadAsync(request);
+
+                if (String.Equals(reply.Value, "N/A") && request.ServerId != -1)
+                {
+                    EstablishChannel(request.ServerId);
+
+                    var readRequest = new ReadRequest
+                    {
+                        PartitionId = request.PartitionId,
+                        ObjectId = request.ObjectId,
+                        ServerId = -1
+                    };
+                    reply = await this.ReadAsync(readRequest);
+                }
+            }
+            catch (Grpc.Core.RpcException e)
+            {
+                Console.WriteLine($"Grpc.Core.RpcException: {e.StatusCode}");
+                var checkStatusRequest = new CheckStatusRequest
+                {
+                    ServerId = this.ServerId
+                };
+                await this.CheckStatusAsync(checkStatusRequest);
+
+                if (request.ServerId != -1)
+                {
+                    EstablishChannel(request.ServerId);
+
+                    var readRequest = new ReadRequest
+                    {
+                        PartitionId = request.PartitionId,
+                        ObjectId = request.ObjectId,
+                        ServerId = -1
+                    };
+                    reply = await this.ReadAsync(readRequest);
+                }
             }
 
             return reply;
@@ -54,13 +89,39 @@ namespace GigaClient
 
         public async Task<WriteReply> WriteAsync(WriteRequest request)
         {
-            var reply = await _client.WriteAsync(request);
-
-            if (reply.MasterId != -1)
+            WriteReply reply;
+            var partitionId = request.PartitionId;
+            try
             {
-                Console.WriteLine($"Establish a channel with the master server (id: {reply.MasterId}) of partition {request.PartitionId}.");
-                EstablishChannel(reply.MasterId);
                 reply = await _client.WriteAsync(request);
+
+                var masterId = reply.MasterId;
+                if (masterId != -1)
+                {
+                    Console.WriteLine($"Establish a channel with the master server (id: {masterId}) of partition {partitionId}.");
+                    EstablishChannel(masterId);
+                    reply = await this.WriteAsync(request);
+                }
+
+            }
+            catch (Grpc.Core.RpcException e)
+            {
+                Console.WriteLine($"Grpc.Core.RpcException: {e.StatusCode}");
+                var checkStatusRequest = new CheckStatusRequest
+                {
+                    ServerId = this.ServerId
+                };
+                await this.CheckStatusAsync(checkStatusRequest);
+
+                var getMasterReply = await this.GetMasterAsync(new GetMasterRequest
+                {
+                    PartitionId = partitionId
+                });
+                var masterId = getMasterReply.MasterId;
+                Console.WriteLine($"Establish a channel with the master server (id: {masterId}) of partition {partitionId}.");
+                EstablishChannel(masterId);
+                reply = await this.WriteAsync(request);
+
             }
 
             return reply;
@@ -68,7 +129,6 @@ namespace GigaClient
 
         public async Task<ListServerReply> ListServerAsync(ListServerRequest request, int serverId)
         {
-            /*
             ListServerReply reply;
             try
             {
@@ -78,26 +138,22 @@ namespace GigaClient
             catch (Grpc.Core.RpcException e)
             {
                 Console.WriteLine($"Grpc.Core.RpcException: {e.StatusCode}");
-                var checkRequest = new CheckRequest
+                var checkStatusRequest = new CheckStatusRequest
                 {
                     ServerId = this.ServerId
                 };
-                await this.CheckStatusAsync(checkRequest);
+                await this.CheckStatusAsync(checkStatusRequest);
 
-                reply = new ListServerReply(); // empty reply
+                reply = new ListServerReply(); // empty reply;
             }
-            */
-
-            EstablishChannel(serverId);
-            var reply = await _client.ListServerAsync(request);
 
             return reply;
         }
 
         public async Task<ListServerReply[]> ListGlobalAsync(ListServerRequest request)
         {
-            ListServerReply[] reply = new ListServerReply[_nservers + 1]; // skip index 0
-            for (int id = 1; id <= _nservers; id++)
+            ListServerReply[] reply = new ListServerReply[_serversCount + 1]; // skip index 0
+            for (int id = 1; id <= _serversCount; id++)
             {
                 try
                 {
@@ -107,11 +163,11 @@ namespace GigaClient
                 catch (Grpc.Core.RpcException e)
                 {
                     Console.WriteLine($"Grpc.Core.RpcException: {e.StatusCode}");
-                    var checkRequest = new CheckRequest
+                    var checkStatusRequest = new CheckStatusRequest
                     {
                         ServerId = this.ServerId
                     };
-                    await this.CheckStatusAsync(checkRequest);
+                    await this.CheckStatusAsync(checkStatusRequest);
 
                     reply[id] = new ListServerReply(); // empty reply
                 }
@@ -120,31 +176,56 @@ namespace GigaClient
             return reply;
         }
 
-        public async Task<CheckReply> CheckStatusAsync(CheckRequest request)
+        public async Task<CheckStatusReply> CheckStatusAsync(CheckStatusRequest request)
         {
-            var reply = new CheckReply();
+            CheckStatusReply reply = new CheckStatusReply(); // empty reply
             try
             {
+                // FIXME check server_id > server_count
                 // connect to next server_id and check the status of the previous one
                 var newServerId = this.ServerId - 1;
-                if (newServerId == 0) newServerId = _nservers;
+                if (newServerId == 0) newServerId = _serversCount;
                 EstablishChannel(newServerId);
-                reply = await _client.CheckStatusAsync(request);
+                await _client.CheckStatusAsync(request);
 
             }
             catch (Grpc.Core.RpcException e)
             {
                 Console.WriteLine($"Grpc.Core.RpcException: {e.StatusCode}");
-                var checkRequest = new CheckRequest
+                var checkStatusRequest = new CheckStatusRequest
                 {
                     ServerId = this.ServerId
                 };
-                await this.CheckStatusAsync(checkRequest);
+                await this.CheckStatusAsync(checkStatusRequest);
 
             }
 
             return reply;
         }
 
-    }
-}
+
+        public async Task<GetMasterReply> GetMasterAsync(GetMasterRequest request)
+        {
+            GetMasterReply reply;
+            try
+            {
+                reply = await _client.GetMasterAsync(request);
+            }
+            catch (Grpc.Core.RpcException e)
+            {
+                Console.WriteLine($"Grpc.Core.RpcException: {e.StatusCode}");
+                var checkStatusRequest = new CheckStatusRequest
+                {
+                    ServerId = this.ServerId
+                };
+                await this.CheckStatusAsync(checkStatusRequest);
+
+                reply = await this.GetMasterAsync(request);
+            }
+
+            return reply;
+        }
+
+    } // class
+
+} // namespace

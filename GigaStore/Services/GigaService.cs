@@ -17,6 +17,7 @@ namespace GigaStore.Services
             _gigaStorage = GigaStorage.GetGigaStorage();
         }
 
+
         /*
          * Base Version
          * 
@@ -34,12 +35,13 @@ namespace GigaStore.Services
         public override Task<WriteReply> Write(WriteRequest request, ServerCallContext context)
         {
             var partitionId = request.PartitionId;
-            if (!_gigaStorage.isMaster(partitionId))
+            if (!_gigaStorage.IsMaster(partitionId))
             {
-                Console.WriteLine("This is not the master server for this partition.");
+                var serverId = _gigaStorage.ServerId;
+                Console.WriteLine($"This server (id: {serverId}) is not the master server for partition {partitionId}.");
                 return Task.FromResult(new WriteReply
                 {
-                    MasterId = _gigaStorage.getMaster(partitionId)
+                    MasterId = _gigaStorage.GetMaster(partitionId)
                 });
             }
 
@@ -64,12 +66,13 @@ namespace GigaStore.Services
                     PartitionId = obj.PartitionId,
                     ObjectId = obj.ObjectId,
                     Value = obj.Value,
-                    InMaster = _gigaStorage.isMaster(obj.PartitionId)
+                    InMaster = _gigaStorage.IsMaster(obj.PartitionId)
                 };
                 reply.Objects.Add(o);
             }
             return Task.FromResult(reply);
         }
+
 
         /*
          * Advanced Version
@@ -90,7 +93,7 @@ namespace GigaStore.Services
         public override Task<WriteReply> WriteAdvanced(WriteRequest request, ServerCallContext context)
         {
             Console.WriteLine("Advanced write");
-            if (!_gigaStorage.isMaster(request.PartitionId))
+            if (!_gigaStorage.IsMaster(request.PartitionId))
             {
                 // TODO lancar uma execao
                 Console.WriteLine("PARTICAO ERRADA");
@@ -104,13 +107,27 @@ namespace GigaStore.Services
 
         }
 
-        public override async Task<CheckReply> CheckStatus(CheckRequest request, ServerCallContext context)
+
+        /*
+         * Auxiliary
+         * 
+         */
+
+        public override async Task<CheckStatusReply> CheckStatus(CheckStatusRequest request, ServerCallContext context)
         {
-            Console.WriteLine("Checking status of server " + request.ServerId);
+            Console.WriteLine($"Checking status of server {request.ServerId}...");
             await _gigaStorage.CheckStatusAsync(request.ServerId);
-            return await Task.FromResult(new CheckReply
+            return await Task.FromResult(new CheckStatusReply
             {
                 // Empty message as ack
+            });
+        }
+
+        public override async Task<GetMasterReply> GetMaster(GetMasterRequest request, ServerCallContext context)
+        {
+            return await Task.FromResult(new GetMasterReply
+            {
+                MasterId = _gigaStorage.GetMaster(request.PartitionId)
             });
         }
 

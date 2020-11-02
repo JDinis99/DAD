@@ -73,7 +73,6 @@ namespace GigaClient
             Console.WriteLine("Type a command ('help' for available commands).");
             do
             {
-                // FIXME(?) try catch not working outside of ExecInputAsync
                 Console.Write("> ");
                 string line = Console.ReadLine();
                 if (line != null && line != "")
@@ -81,7 +80,7 @@ namespace GigaClient
 
             } while (true);
 
-        }
+        } // Main
 
 
         private static async Task ExecInputAsync(Frontend frontend, string line, bool repeat)
@@ -242,16 +241,8 @@ namespace GigaClient
             {
                 Console.WriteLine($"InvalidOperationException: {e.Message}");
             }
-            catch (Grpc.Core.RpcException e)
-            {
-                Console.WriteLine($"Grpc.Core.RpcException: {e.StatusCode}");
-                var checkRequest = new CheckRequest
-                {
-                    ServerId = frontend.ServerId
-                };
-                await frontend.CheckStatusAsync(checkRequest);
-            }
-        }
+
+        } // ExecInputAsync
 
 
         private static void ShutdownHook(object sender, EventArgs args)
@@ -262,5 +253,6 @@ namespace GigaClient
             Console.ReadKey();
         }
 
-    }
-}
+    } // class
+
+} // namespace

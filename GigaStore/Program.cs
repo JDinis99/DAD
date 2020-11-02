@@ -22,7 +22,7 @@ namespace GigaStore
             /* check arguments amount */
             if (args.Length != 3)
             {
-                Console.WriteLine("Invalid amount of arguments.\n" + "Usage: dotnet run serverId nservers advanced");
+                Console.WriteLine("Invalid amount of arguments.\n" + "Usage: dotnet run serverId serversCount isAdvanced");
                 return;
             }
 
@@ -32,14 +32,14 @@ namespace GigaStore
                 Console.WriteLine("'serverId' must be a positive value of type Int32.");
                 return;
             }
-            if (!Int32.TryParse(args[1], out int nservers) || nservers <= 0)
+            if (!Int32.TryParse(args[1], out int serversCount) || serversCount <= 0)
             {
-                Console.WriteLine("'n_servers' must be a positive value of type Int32.");
+                Console.WriteLine("'serversCount' must be a positive value of type Int32.");
                 return;
             }
-            if (!bool.TryParse(args[2], out Boolean advanced) || nservers <= 0)
+            if (!Boolean.TryParse(args[2], out bool isAdvanced))
             {
-                Console.WriteLine("advanced' must be a positive value of type Boolean.");
+                Console.WriteLine("'isAdvanced' must be a value of type Boolean.");
                 return;
             }
 
@@ -54,16 +54,16 @@ namespace GigaStore
                 {
                     // FIXME variables already parsed and assigned
                     var serverId = Int32.Parse(args[0]);
-                    var nservers = Int32.Parse(args[1]);
-                    var advanced = Boolean.Parse(args[2]);
+                    var serversCount = Int32.Parse(args[1]);
+                    var isAdvanced = Boolean.Parse(args[2]);
 
                     string url = "https://localhost:500" + serverId;
                     GigaStorage giga = GigaStorage.GetGigaStorage();
                     webBuilder.UseUrls(url);
 
-                    giga.SetServerId(serverId);
-                    giga.SetNumberOfServers(nservers);
-                    giga.SetAdvanced(advanced);
+                    giga.ServerId = serverId;
+                    giga.ServersCount = serversCount;
+                    giga.IsAdvanced = isAdvanced;
 
                     webBuilder.UseStartup<Startup>();
                 });
