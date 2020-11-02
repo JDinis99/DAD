@@ -23,6 +23,7 @@ namespace GigaStore
         private PropagateClient[] _clients;
         private AutoResetEvent[] _handles;
         private bool _inited = false;
+        private bool _advanced;
 
         // Lists masters for all partitions
         private int[] _master;
@@ -248,7 +249,6 @@ namespace GigaStore
             }
             catch (KeyNotFoundException)
             {
-                // FIXME(?) deviamos criar um semaforo neste cenario?
                 value = "N/A";
             }
             return value;
@@ -546,61 +546,65 @@ namespace GigaStore
                 }
             }
 
-
-            // If not enough servers share the master partitions request more servers to share it
-            for (int i = 1; i < _master.Length; i++)
+            // Only propagate if in advanced mode
+            if (_advanced)
             {
-                if (_master[i] == _serverId)
+                // If not enough servers share the master partitions request more servers to share it
+                for (int i = 1; i < _master.Length; i++)
                 {
-
-                    Console.WriteLine("MASTER OF PARTITION: " + i);
-                    // If not enough servers propagate
-                    if (_servers[i].Count < _aliveServers / 2)
+                    if (_master[i] == _serverId)
                     {
-                        for (int x = i + 1; x != i;)
+
+                        Console.WriteLine("MASTER OF PARTITION: " + i);
+                        // If not enough servers propagate
+                        if (_servers[i].Count < _aliveServers / 2)
                         {
-                            if (x > _numberOfServers)
+                            for (int x = i + 1; x != i;)
                             {
-                                x -= _numberOfServers;
-                            }
-
-                            Console.WriteLine("Partition: " + i + " Server ID: " + x);
-                            if (_down[x] || _servers[i].Contains(x) || x == _serverId)
-                            {
-                                x++;
-                                continue;
-                            }
-                            try
-                            {
-                                Console.WriteLine("Asking server: " + x + " to replicate partition: " + i);
-                                var replicateRequest = _clients[x].ReplicatePartition();
-                                foreach (KeyValuePair<int, string> entry in _gigaObjects[i])
+                                if (x > _numberOfServers)
                                 {
-                                    await replicateRequest.RequestStream.WriteAsync(new ReplicateRequest
-                                    {
-                                        PartitionId = i,
-                                        ObjectId = entry.Key,
-                                        Value = entry.Value
-                                    });
-
+                                    x -= _numberOfServers;
                                 }
-                                await replicateRequest.RequestStream.CompleteAsync();
-                                x++;
-                                break;
-                            }
-                            catch
-                            {
-                                x++;
-                                // skip this one
+
+                                Console.WriteLine("Partition: " + i + " Server ID: " + x);
+                                if (_down[x] || _servers[i].Contains(x) || x == _serverId)
+                                {
+                                    x++;
+                                    continue;
+                                }
+                                try
+                                {
+                                    Console.WriteLine("Asking server: " + x + " to replicate partition: " + i);
+                                    var replicateRequest = _clients[x].ReplicatePartition();
+                                    foreach (KeyValuePair<int, string> entry in _gigaObjects[i])
+                                    {
+                                        await replicateRequest.RequestStream.WriteAsync(new ReplicateRequest
+                                        {
+                                            PartitionId = i,
+                                            ObjectId = entry.Key,
+                                            Value = entry.Value
+                                        });
+
+                                    }
+                                    await replicateRequest.RequestStream.CompleteAsync();
+                                    x++;
+                                    break;
+                                }
+                                catch
+                                {
+                                    x++;
+                                    // skip this one
+                                }
+
                             }
 
                         }
-
-                    }
                 
-                }
+                    }
 
+                }
             }
+
 
         }
 
@@ -673,6 +677,11 @@ namespace GigaStore
         public void SetNumberOfServers(int numberOfServers)
         {
             _numberOfServers = numberOfServers;
+        }
+
+        public void SetAdvanced (bool advnaced)
+        {
+            _advanced = advnaced;
         }
 
         public int getMaster(int partition_id)
