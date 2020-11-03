@@ -16,9 +16,9 @@ service Giga {
 }
 
 message ReadRequest {
-	int32 partition_id = 1;
+	string partition_id = 1;
 	int32 object_id = 2;
-	int32 server_id = 3;
+	string server_id = 3;
 }
 
 message ReadReply {
@@ -26,13 +26,13 @@ message ReadReply {
 }
 
 message WriteRequest {
-	int32 partition_id = 1;
+	string partition_id = 1;
 	int32 object_id = 2;
 	string value = 3;
 }
 
 message WriteReply {
-	int32 master_id = 1;
+	string master_id = 1;
 }
 
 message ListServerRequest {
@@ -41,7 +41,7 @@ message ListServerRequest {
 
 message ListServerReply {
 	message Object {
-		int32 partition_id = 1;
+		string partition_id = 1;
 		int32 object_id = 2;
 		string value = 3;
 		bool in_master = 4;
@@ -50,7 +50,7 @@ message ListServerReply {
 }
 
 message CheckStatusRequest {
-	int32 server_id = 1;
+	string server_id = 1;
 }
 
 message CheckStatusReply {
@@ -58,9 +58,9 @@ message CheckStatusReply {
 }
 
 message GetMasterRequest {
-	int32 partition_id = 1;
+	string partition_id = 1;
 }
 
 message GetMasterReply {
-	int32 master_id = 1;
+	string master_id = 1;
 }

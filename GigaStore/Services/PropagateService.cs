@@ -54,8 +54,8 @@ namespace GigaStore.Services
 
         public override async Task<ChangeReply> ChangeMaster(ChangeRequest request, ServerCallContext context)
         {
-            Console.WriteLine("Change Master from server: " + request.ServerId);
-            await _gigaStorage.ChangeMasterAsync(request.ServerId);
+            Console.WriteLine("Change Master from server: " + request.ServerId + " for partition " + request.PartitionId);
+            await _gigaStorage.ChangeMasterAsync(request.ServerId, request.PartitionId);
             return await Task.FromResult(new ChangeReply
             {
                 // Empty message as ack
@@ -65,8 +65,8 @@ namespace GigaStore.Services
 
         public override async Task<ChangeReply> ChangeMasterNotification(ChangeNotificationRequest request, ServerCallContext context)
         {
-            Console.WriteLine("Change Master Notification from server: " + request.ServerId + " to: " + request.NewServerId);
-            await _gigaStorage.ChangeMasterNotificationAsync(request.ServerId, request.NewServerId);
+            Console.WriteLine("Change Master Notification from server: " + request.ServerId + " to: " + request.NewServerId + " for partiton: " + request.PartitionId);
+            await _gigaStorage.ChangeMasterNotificationAsync(request.ServerId, request.NewServerId, request.PartitionId);
             return await Task.FromResult(new ChangeReply
             {
                 // Empty message as ack
