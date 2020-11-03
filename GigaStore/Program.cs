@@ -20,19 +20,24 @@ namespace GigaStore
                 Console.WriteLine($"  arg[{i}] = {args[i]}");
 
             /* check arguments amount */
-            if (args.Length != 2)
+            if (args.Length != 5)
             {
-                Console.WriteLine("Invalid amount of arguments.\n" + "Usage: dotnet run serverId nservers");
+                Console.WriteLine("Invalid amount of arguments.\n" + "Usage: dotnet run serverId url minDelay maxDelay nservers");
                 return;
             }
 
             /* validate arguments */
-            if (!Int32.TryParse(args[0], out int serverId) || serverId <= 0)
+            if (!Int32.TryParse(args[2], out int minDelay) || minDelay < 0)
             {
                 Console.WriteLine("'serverId' must be a positive value of type Int32.");
                 return;
             }
-            if (!Int32.TryParse(args[1], out int nservers) || nservers <= 0)
+            if (!Int32.TryParse(args[3], out int maxDelay) || maxDelay < 0)
+            {
+                Console.WriteLine("'serverId' must be a positive value of type Int32.");
+                return;
+            }
+            if (!Int32.TryParse(args[4], out int nservers) || nservers <= 0)
             {
                 Console.WriteLine("'n_servers' must be a positive value of type Int32.");
                 return;
@@ -48,15 +53,19 @@ namespace GigaStore
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     // FIXME variables already parsed and assigned
-                    var serverId = Int32.Parse(args[0]);
-                    var nservers = Int32.Parse(args[1]);
+                    var serverId = args[0];
+                    var url = args[1];
+                    var minDelay = Int32.Parse(args[2]);
+                    var maxDelay = Int32.Parse(args[3]);
+                    var nservers = Int32.Parse(args[4]);
 
-                    string url = "https://localhost:500" + serverId;
                     GigaStorage giga = GigaStorage.GetGigaStorage();
                     webBuilder.UseUrls(url);
 
-                    giga.SetServerId(serverId);
+                    giga.SetServerId(Int32.Parse(serverId));
                     giga.SetNumberOfServers(nservers);
+                    giga.SetMinDelay(minDelay);
+                    giga.SetMaxDelay(maxDelay);
 
                     webBuilder.UseStartup<Startup>();
                 });

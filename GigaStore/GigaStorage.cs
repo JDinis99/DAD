@@ -8,6 +8,7 @@ using System.Threading;
 using Grpc.Core;
 using System.Drawing.Printing;
 using GigaStore.Services;
+using System.Diagnostics;
 
 namespace GigaStore
 {
@@ -23,6 +24,10 @@ namespace GigaStore
         private PropagateClient[] _clients;
         private AutoResetEvent[] _handles;
         private bool _inited = false;
+        private bool _frozen = false;
+        private int _minDelay;
+        private int _maxDelay;
+        private int _replicationFactor;
 
         // Lists masters for all partitions
         private int[] _master;
@@ -548,7 +553,7 @@ namespace GigaStore
 
                     Console.WriteLine("MASTER OF PARTITION: " + i);
                     // If not enough servers propagate
-                    if (_servers[i].Count < _aliveServers / 2)
+                    if (_servers[i].Count < _replicationFactor)
                     {
                         for (int x = i + 1; x != i;)
                         {
@@ -671,6 +676,64 @@ namespace GigaStore
         public int getMaster(int partition_id)
         {
             return _master[partition_id];
+        }
+
+
+        public void ChangeReplicationFactor(int factor)
+        {
+            _replicationFactor = factor;
+        }
+
+        public void SetMinDelay(int delay)
+        {
+            _minDelay = delay;
+        }
+
+        public void SetMaxDelay(int delay)
+        {
+            _maxDelay = delay;
+        }
+
+        public void Delay()
+        {
+            Random r = new Random();
+            int rInt = r.Next(_minDelay, _maxDelay);
+            Thread.Sleep(rInt);
+        }
+
+        public Boolean IsFrozen()
+        {
+            return _frozen;
+        }
+
+        public void PrintStatus()
+        {
+                Console.WriteLine("Server up and running");
+        }
+
+        public bool Crash()
+        {   
+            try
+            {
+                Process.GetCurrentProcess().Kill();
+                return false;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        public void FreezeServer()
+        {
+            Console.WriteLine("Freezing server");
+            _frozen = true;
+        }
+
+        public void UnfreezeServer()
+        {
+            Console.WriteLine("Unfreezing server");
+            _frozen = false;
         }
 
     }
