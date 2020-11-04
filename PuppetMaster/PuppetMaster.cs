@@ -25,6 +25,7 @@ namespace PuppetMaster
         private Dictionary<string, GrpcChannel> _channels = new Dictionary<string, GrpcChannel>();
         private Dictionary<string, string> _serverUrls = new Dictionary<string, string>();
         private Dictionary<string, GigaStore.PuppetMaster.PuppetMasterClient> _puppetServerClients = new Dictionary<string, GigaStore.PuppetMaster.PuppetMasterClient>();
+        //TODO - ADICIONAR DICIONARIOS DE LIGACOES A CLIENTS
 
         public delegate void ReplicationFactorDelegate(String factor);
         public delegate void CreateServerDelegate(String[] args);
@@ -54,7 +55,8 @@ namespace PuppetMaster
 
             WriteToLogger("Configuring system to replicate partitions on " + rep_factor + " servers...");
             WriteToLogger(Environment.NewLine);
-            foreach (string id in _puppetServerClients.Keys)
+            Dictionary<string, GigaStore.PuppetMaster.PuppetMasterClient>.KeyCollection keys = _puppetServerClients.Keys;
+            foreach (string id in keys)
             {
                 _puppetServerClients[id].ReplicationFactor(new ReplicationFactorRequest { Factor = rep_factor });
             }
@@ -87,7 +89,6 @@ namespace PuppetMaster
                 newServer.StartInfo.FileName = ".\\..\\..\\..\\..\\GigaStore\\bin\\Debug\\netcoreapp3.1\\GigaStore.exe";
                 newServer.StartInfo.Arguments = server_id + " " + server_url + " " + min_delay + " " + max_delay + " " + _no_servers + " " + _isAdvanced;
                 newServer.Start();
-                Thread.Sleep(500); // give a little for server to init
                 lock (this)
                 {
                     _serverUrls.Add(server_id, server_url);
@@ -128,15 +129,25 @@ namespace PuppetMaster
             InitAllServers();
             WriteToLogger("Storing " + rep_factor + " replicas of partition " + partition_name + " on servers " + list_servers + "...");
             WriteToLogger(Environment.NewLine);
-            for (int i = 2; i < args.Length; i++)
+            Dictionary<string, GigaStore.PuppetMaster.PuppetMasterClient>.KeyCollection keys = _puppetServerClients.Keys;
+            foreach (String id in keys)
             {
-                _puppetServerClients[args[i]].Partition(new PartitionRequest { Name = partition_name, Ids = list_servers });
+                _puppetServerClients[id].Partition(new PartitionRequest { Name = partition_name, Ids = list_servers });
             }
         }
 
         public void CreateClient(String[] args)
         {
-
+            String username = args[0];
+            String client_url = args[1];
+            String script_file = args[2];
+            WriteToLogger("Creating new client with username " + username + " on URL " + client_url + " to run script " + script_file + "...");
+            WriteToLogger(Environment.NewLine);
+            Process newClient = new Process();
+            newClient.StartInfo.FileName = ".\\..\\..\\..\\..\\GigaClient\\bin\\Debug\\netcoreapp3.1\\GigaClient.exe";
+            newClient.StartInfo.Arguments = _no_servers + " " + _isAdvanced + " " + "..\\..\\..\\..\\GigaClient\\" + script_file;
+            newClient.Start();
+            //TODO - ADICIONAR INFORMACOES DE CLIENT A DICIONARIOS COM OS URLS E CHANNELS
         }
 
         public void Status() {
@@ -261,7 +272,6 @@ namespace PuppetMaster
                 String[] ids_list = ids.Split(" ");
                 for (int i=0; i < server_count; i++)
                     args[i+2] = ids_list[i];
-                WriteToLogger(String.Join(",", args));
                 PartitionDelegate del = new PartitionDelegate(Partition);
                 var workTask = Task.Run(() => del.Invoke(args));
             }
@@ -273,11 +283,12 @@ namespace PuppetMaster
             var result = form.ShowDialog();
             if (result == DialogResult.OK)
             {
-                string username = form.item1;
-                string client_url = form.item2;
-                string script_file = form.item3;
-                WriteToLogger("Creating new client with username " + username + " on URL " + client_url + " to run script " + script_file + "...");
-                WriteToLogger(Environment.NewLine);
+                String[] args = new string[3];
+                args[0] = form.item1;
+                args[1] = form.item2;
+                args[2] = form.item3;
+                CreateClientDelegate del = new CreateClientDelegate(CreateClient);
+                var workTask = Task.Run(() => del.Invoke(args));
             }
         }
 
@@ -395,6 +406,9 @@ namespace PuppetMaster
                     CrashServerDelegate cr_del = new CrashServerDelegate(CrashServer);
                     var cr_workTask = Task.Run(() => cr_del.Invoke(args[0]));
                     break;
+                case "Wait":
+                    Thread.Sleep(Int32.Parse(args[0]));
+                    break;
             }
         }
 
@@ -423,9 +437,10 @@ namespace PuppetMaster
                     ids += id + " ";
                     urls += _serverUrls[id] + " ";
                 }
-                foreach (String id in _puppetServerClients.Keys)
+                Dictionary<string, GigaStore.PuppetMaster.PuppetMasterClient>.KeyCollection keys = _puppetServerClients.Keys;
+                foreach (String id in keys)
                 {
-                    _puppetServerClients[id].InitServer(new InitServerRequest { Ids = ids, Urls = urls });
+                    _puppetServerClients[id].InitServer(new InitServerRequest { Ids = ids.Trim(), Urls = urls.Trim() });
                 }
                 _initedServers = true;
             }

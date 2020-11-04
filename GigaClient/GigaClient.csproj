@@ -35,6 +35,7 @@
 	<ItemGroup>
 		<Protobuf Include="../GigaStore/Protos/greet.proto" GrpcServices="Client" />
 		<Protobuf Include="../GigaStore/Protos/giga.proto" GrpcServices="Client" />
+		<Protobuf Include="../GigaStore/Protos/puppetmaster.proto" GrpcServices="Server" />
 	</ItemGroup>
 
 	<ItemGroup>
