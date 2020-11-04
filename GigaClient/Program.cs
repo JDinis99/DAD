@@ -79,7 +79,7 @@ namespace GigaClient
 
             /* create a connection to the gRPC service */
             var random = new Random();
-            var index = random.Next(serversCount);
+            var index = random.Next(serversCount) + 1;
 
             // FIXME !!!!!!! choose from existing ids
             var serverId = index.ToString();

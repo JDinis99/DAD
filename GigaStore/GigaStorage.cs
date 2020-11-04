@@ -58,6 +58,7 @@ namespace GigaStore
         // Starts the GRPC clients with the other servers and sets up all axiliary lists
         public void Init (List<string> servers, List<string> urls)
         {
+            Console.WriteLine("INIT");
             // If it has already been initiated then ignore
             if (_inited)
             {
@@ -77,8 +78,18 @@ namespace GigaStore
 
         public void MakePartition(string partition, List<string> servers, string master)
         {
-            _servers.Add(partition, servers);
+            Console.WriteLine("New Partition: " + partition + " master: " + master);
             _master.Add(partition, master);
+            List<String> tmp = new List<string>();
+            foreach(String server in servers)
+            {
+                if (ServerId != server && server != "")
+                {
+                    tmp.Add(server);
+                    Console.WriteLine("adding server: <" + server + ">");
+                }
+            }
+            _servers.Add(partition, tmp);
         }
 
         /*

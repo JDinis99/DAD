@@ -83,7 +83,7 @@ namespace GigaClient
             {
                 reply = await ClientReadAsync(request);
 
-                if (String.Equals(reply.Value, "N/A") && request.ServerId != null)
+                if (String.Equals(reply.Value, "N/A") && request.ServerId != "-1")
                 {
                     EstablishChannel(request.ServerId);
 
@@ -91,7 +91,7 @@ namespace GigaClient
                     {
                         PartitionId = request.PartitionId,
                         ObjectId = request.ObjectId,
-                        ServerId = null
+                        ServerId = "-1"
                     };
                     reply = await ReadAsync(readRequest); // recursion
                 }
@@ -105,7 +105,7 @@ namespace GigaClient
                 };
                 await CheckStatusAsync(checkStatusRequest);
 
-                if (request.ServerId != null)
+                if (request.ServerId != "-1")
                 {
                     EstablishChannel(request.ServerId);
 
@@ -113,7 +113,7 @@ namespace GigaClient
                     {
                         PartitionId = request.PartitionId,
                         ObjectId = request.ObjectId,
-                        ServerId = null
+                        ServerId = "-1"
                     };
                     reply = await ReadAsync(readRequest); // recursion
                 }
@@ -131,7 +131,7 @@ namespace GigaClient
                 reply = await ClientWriteAsync(request);
 
                 var masterId = reply.MasterId;
-                if (masterId != null)
+                if (masterId != null && masterId != "-1")
                 {
                     Console.WriteLine($"Establish a channel with the master server (id: {masterId}) of partition {partitionId}.");
                     EstablishChannel(masterId);
