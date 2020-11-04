@@ -21,7 +21,7 @@ namespace GigaStore.Services
         
         public override  Task<PropagateReply> PropagateServers(PropagateRequest request, ServerCallContext context)
         {
-            Console.WriteLine("Propagated to Server: " + _gigaStorage.GetServerId());
+            Console.WriteLine("Propagated to Server: " + _gigaStorage.ServerId);
 
             _gigaStorage.Store(request.PartitionId, request.ObjectId, request.Value);
             return Task.FromResult(new PropagateReply
@@ -42,7 +42,7 @@ namespace GigaStore.Services
 
         public override Task<PropagateReply> PropagateServersAdvanced(PropagateRequest request, ServerCallContext context)
         {
-            Console.WriteLine("Propagated Advanced to Server: " + _gigaStorage.GetServerId());
+            Console.WriteLine("Propagated Advanced to Server: " + _gigaStorage.ServerId);
 
             _gigaStorage.StoreAdvanced(request.PartitionId, request.ObjectId, request.Value);
             return Task.FromResult(new PropagateReply

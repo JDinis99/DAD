@@ -22,7 +22,7 @@ namespace GigaStore
             /* check arguments amount */
             if (args.Length != 5)
             {
-                Console.WriteLine("Invalid amount of arguments.\n" + "Usage: dotnet run serverId url minDelay maxDelay nservers");
+                Console.WriteLine("Invalid amount of arguments.\n" + "Usage: dotnet run serverId url minDelay maxDelay nservers isAdvanced");
                 return;
             }
 
@@ -39,7 +39,12 @@ namespace GigaStore
             }
             if (!Int32.TryParse(args[4], out int nservers) || nservers <= 0)
             {
-                Console.WriteLine("'n_servers' must be a positive value of type Int32.");
+                Console.WriteLine("'serversCount' must be a positive value of type Int32.");
+                return;
+            }
+            if (!Boolean.TryParse(args[5], out bool isAdvanced))
+            {
+                Console.WriteLine("'isAdvanced' must be a value of type Boolean.");
                 return;
             }
 
@@ -53,19 +58,22 @@ namespace GigaStore
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     // FIXME variables already parsed and assigned
-                    var serverId = args[0];
+                    var serverId = Int32.Parse(args[0]);
                     var url = args[1];
                     var minDelay = Int32.Parse(args[2]);
                     var maxDelay = Int32.Parse(args[3]);
                     var nservers = Int32.Parse(args[4]);
+                    var isAdvanced = Boolean.Parse(args[5]);
 
                     GigaStorage giga = GigaStorage.GetGigaStorage();
                     webBuilder.UseUrls(url);
 
-                    giga.SetServerId(Int32.Parse(serverId));
-                    giga.SetNumberOfServers(nservers);
+
                     giga.SetMinDelay(minDelay);
                     giga.SetMaxDelay(maxDelay);
+                    giga.ServerId = serverId;
+                    giga.ServersCount = nservers;
+                    giga.IsAdvanced = isAdvanced;
 
                     webBuilder.UseStartup<Startup>();
                 });

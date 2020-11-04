@@ -17,6 +17,7 @@ namespace GigaStore.Services
             _gigaStorage = GigaStorage.GetGigaStorage();
         }
 
+
         /*
          * Base Version
          * 
@@ -24,8 +25,6 @@ namespace GigaStore.Services
 
         public override Task<ReadReply> Read(ReadRequest request, ServerCallContext context)
         {
-            Console.WriteLine("Client contacted server " + request.ServerId + " and reached " + _gigaStorage.GetServerId());
-
             string value = _gigaStorage.Read(request.PartitionId, request.ObjectId);
             return Task.FromResult(new ReadReply
             {
@@ -35,14 +34,14 @@ namespace GigaStore.Services
 
         public override Task<WriteReply> Write(WriteRequest request, ServerCallContext context)
         {
-            Console.WriteLine("WRITE");
-            var partition_id = request.PartitionId;
-            if (!_gigaStorage.isMaster(partition_id))
+            var partitionId = request.PartitionId;
+            if (!_gigaStorage.IsMaster(partitionId))
             {
-                Console.WriteLine("This is not the master server for this partition.");
+                var serverId = _gigaStorage.ServerId;
+                Console.WriteLine($"This server (id: {serverId}) is not the master server for partition {partitionId}.");
                 return Task.FromResult(new WriteReply
                 {
-                    MasterId = _gigaStorage.getMaster(partition_id)
+                    MasterId = _gigaStorage.GetMaster(partitionId)
                 });
             }
 
@@ -67,12 +66,13 @@ namespace GigaStore.Services
                     PartitionId = obj.PartitionId,
                     ObjectId = obj.ObjectId,
                     Value = obj.Value,
-                    InMaster = _gigaStorage.isMaster(obj.PartitionId)
+                    InMaster = _gigaStorage.IsMaster(obj.PartitionId)
                 };
                 reply.Objects.Add(o);
             }
             return Task.FromResult(reply);
         }
+
 
         /*
          * Advanced Version
@@ -93,7 +93,7 @@ namespace GigaStore.Services
         public override Task<WriteReply> WriteAdvanced(WriteRequest request, ServerCallContext context)
         {
             Console.WriteLine("Advanced write");
-            if (!_gigaStorage.isMaster(request.PartitionId))
+            if (!_gigaStorage.IsMaster(request.PartitionId))
             {
                 // TODO lancar uma execao
                 Console.WriteLine("PARTICAO ERRADA");
@@ -107,13 +107,27 @@ namespace GigaStore.Services
 
         }
 
-        public override async Task<CheckReply> CheckStatus(CheckRequest request, ServerCallContext context)
+
+        /*
+         * Auxiliary
+         * 
+         */
+
+        public override async Task<CheckStatusReply> CheckStatus(CheckStatusRequest request, ServerCallContext context)
         {
-            Console.WriteLine("Checking status of server " + request.ServerId);
+            Console.WriteLine($"Checking status of server {request.ServerId}...");
             await _gigaStorage.CheckStatusAsync(request.ServerId);
-            return await Task.FromResult(new CheckReply
+            return await Task.FromResult(new CheckStatusReply
             {
                 // Empty message as ack
+            });
+        }
+
+        public override async Task<GetMasterReply> GetMaster(GetMasterRequest request, ServerCallContext context)
+        {
+            return await Task.FromResult(new GetMasterReply
+            {
+                MasterId = _gigaStorage.GetMaster(request.PartitionId)
             });
         }
 

@@ -9,7 +9,10 @@ service Giga {
 
   rpc ReadAdvanced (ReadRequest) returns (ReadReply);
   rpc WriteAdvanced (WriteRequest) returns (WriteReply);
-  rpc CheckStatus (CheckRequest) returns (CheckReply);
+
+  rpc CheckStatus (CheckStatusRequest) returns (CheckStatusReply);
+  rpc GetMaster (GetMasterRequest) returns (GetMasterReply);
+
 }
 
 message ReadRequest {
@@ -46,10 +49,18 @@ message ListServerReply {
 	repeated Object objects = 1;
 }
 
-message CheckRequest {
+message CheckStatusRequest {
 	int32 server_id = 1;
 }
 
-message CheckReply {
+message CheckStatusReply {
 
+}
+
+message GetMasterRequest {
+	int32 partition_id = 1;
+}
+
+message GetMasterReply {
+	int32 master_id = 1;
 }
