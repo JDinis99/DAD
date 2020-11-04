@@ -21,16 +21,16 @@ namespace GigaStore
         public string ServerId { get; set; }
         public int ServersCount { get; set; }
         public bool IsAdvanced { get; set; }
+        public int MinDelay { get; set; }
+        public int MaxDelay { get; set; }
 
-
-        private int replicationFactor;
         private Dictionary<string, GrpcChannel> _chanels;
         private Dictionary<string, PropagateClient> _clients;
+
+        private int replicationFactor;
         private AutoResetEvent[] _handles;
         private bool _inited = false;
         private bool _frozen = false;
-        private int _minDelay;
-        private int _maxDelay;
         private int _replicationFactor;
 
         // Lists masters for all partitions. First string is the partition and second is the serverId of its master
@@ -76,7 +76,6 @@ namespace GigaStore
                 }
                 _down.Add(servers[i], false);
             }
-
         }
 
 
@@ -245,8 +244,7 @@ namespace GigaStore
             return value;
         }
 
-        /* // HEY THERE, PLEASE DONT DELETE ME
-        
+        // Base Version List
         public List<Object> ListServer()
         {
             var objects = new List<Object>();
@@ -257,46 +255,13 @@ namespace GigaStore
                     try
                     {
                         _semObjects[partitionId][objectId].WaitOne();
-                    }
-                    catch (KeyNotFoundException e)
-                    {
-                        Console.WriteLine($"KeyNotFoundException: {e.Message}");
-                        // FIXME(?) deviamos criar um semaforo neste cenario?
-                        _semObjects.Add(partitionId, objectId, new Semaphore(1, 1));
-                        _semObjects[partitionId][objectId].WaitOne();
-                    }
-
-                    Console.WriteLine($"[READ] Locked (partition {partitionId}, object {objectId}).");
-                    string value = _gigaObjects[partitionId][objectId];
-                    _semObjects[partitionId][objectId].Release();
-                    Console.WriteLine($"[READ] Unlocked (partition {partitionId}, object {objectId}).");
-
-                    var o = new Object(partitionId, objectId, value);
-                    objects.Add(o);
-                }
-            }
-            return objects;
-        }
-
-        */
-
-        public List<Object> ListServer()
-        {
-            var objects = new List<Object>();
-            foreach (var partitionId in _gigaObjects.Keys)
-            {
-                foreach (var objectId in _gigaObjects[partitionId].Keys)
-                {
-                    try
-                    {
-                        _semObjects[partitionId][objectId].WaitOne();
-                        Console.WriteLine($"[READ] Locked (partition {partitionId}, object {objectId}).");
-                        string value = _gigaObjects[partitionId][objectId];
+                        Console.WriteLine($"[LIST] Locked (partition {partitionId}, object {objectId}).");
+                        var value = _gigaObjects[partitionId][objectId];
                         _semObjects[partitionId][objectId].Release();
-                        Console.WriteLine($"[READ] Unlocked (partition {partitionId}, object {objectId}).");
+                        Console.WriteLine($"[LIST] Unlocked (partition {partitionId}, object {objectId}).");
 
-                        var o = new Object(partitionId, objectId, value);
-                        objects.Add(o);
+                        var obj = new Object(partitionId, objectId, value);
+                        objects.Add(obj);
                     }
                     catch (KeyNotFoundException e)
                     {
@@ -306,14 +271,12 @@ namespace GigaStore
             }
             return objects;
         }
-
 
 
         /*
          * Advanced Version
          * 
          */
-
 
         // Advanced Version Write
         public void WriteAdvanced(string partition, int object_id, string value)
@@ -357,6 +320,22 @@ namespace GigaStore
             return value;
         }
 
+        // Advanced Version List
+        public List<Object> ListServerAdvanced()
+        {
+            var objects = new List<Object>();
+            foreach (var partitionId in _gigaObjects.Keys)
+            {
+                foreach (var objectId in _gigaObjects[partitionId].Keys)
+                {
+                    var value = _gigaObjects[partitionId][objectId];
+                    var obj = new Object(partitionId, objectId, value);
+                    objects.Add(obj);
+                }
+            }
+            return objects;
+        }
+
         // Stores value without blocking a semaphore
         public void StoreAdvanced(string partition_id, int object_id, string value)
         {
@@ -387,7 +366,6 @@ namespace GigaStore
         {
             string new_server;
 
-            
             // Iteration starts at 0
             if (iteration >= _servers[partition].Count )
             {
@@ -476,7 +454,6 @@ namespace GigaStore
         // Marks old server as down, sets new master for partition, removes old server from server list and verifies if another server needs to be contacted
         public async Task MasterUpdateAsync (string old_server, string new_server, string partition)
         {
-
             Console.WriteLine("Donwing server: " + old_server + " for: " + new_server + " on partition: " + partition);
             _down[old_server] = true;
 
@@ -531,14 +508,9 @@ namespace GigaStore
                             // If it fails server is down
                             DeadServerReport(server.Key);
                         }
-
                     }
-
                 }
-                
             }
-
-
         }
 
         // Gets Partition
@@ -579,20 +551,10 @@ namespace GigaStore
             _replicationFactor = factor;
         }
 
-        public void SetMinDelay(int delay)
-        {
-            _minDelay = delay;
-        }
-
-        public void SetMaxDelay(int delay)
-        {
-            _maxDelay = delay;
-        }
-
         public void Delay()
         {
             Random r = new Random();
-            int rInt = r.Next(_minDelay, _maxDelay);
+            int rInt = r.Next(this.MinDelay, this.MaxDelay);
             Thread.Sleep(rInt);
         }
 

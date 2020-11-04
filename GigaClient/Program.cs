@@ -8,7 +8,6 @@ namespace GigaClient
 {
     class Program
     {
-        private static readonly string USAGE = "Usage: dotnet run n_servers";
         private static readonly string UNKNOWN_COMMAND = "Unknown command.";
 
         private static readonly string HELP_STRING =
@@ -51,23 +50,29 @@ namespace GigaClient
                 Console.WriteLine($"  arg[{i}] = {args[i]}");
 
             /* check arguments amount */
-            if (args.Length != 1)
+            if (args.Length != 2)
             {
-                Console.WriteLine("Invalid amount of arguments.\n" + USAGE);
+                Console.WriteLine("Invalid amount of arguments.\n" +
+                    "Usage: dotnet run serversCount isAdvanced");
                 return;
             }
 
             /* validate arguments */
-            if (!Int32.TryParse(args[0], out int nservers) || nservers <= 0)
+            if (!Int32.TryParse(args[0], out int serversCount) || serversCount <= 0)
             {
-                Console.WriteLine("'n_servers' must be a positive value of type Int32.");
+                Console.WriteLine("'serversCount' must be a positive value of type Int32.");
+                return;
+            }
+            if (!Boolean.TryParse(args[1], out bool isAdvanced))
+            {
+                Console.WriteLine("'isAdvanced' must be a value of type Boolean.");
                 return;
             }
 
             /* create a connection to the gRPC service */
             var random = new Random();
-            var serverId = random.Next(nservers) + 1;
-            var frontend = new Frontend(serverId, nservers);
+            var serverId = random.Next(serversCount) + 1;
+            var frontend = new Frontend(serverId, serversCount, isAdvanced);
 
             /* read input */
             Console.WriteLine("Type a command ('help' for available commands).");
@@ -244,6 +249,7 @@ namespace GigaClient
 
         } // ExecInputAsync
 
+        /*
 
         private static void ShutdownHook(object sender, EventArgs args)
         {
@@ -252,6 +258,8 @@ namespace GigaClient
             Console.WriteLine("Press any key to exit...");
             Console.ReadKey();
         }
+
+        */
 
     } // class
 
