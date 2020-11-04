@@ -1,12 +1,10 @@
 Server 1 https://localhost:5001 0 10
-Wait 1000
 Server 2 https://localhost:5002 0 10
-Wait 1000
 Server 3 https://localhost:5003 0 10
-Wait 1000
 Server 4 https://localhost:5004 0 10
-Wait 1000
 Server 5 https://localhost:5005 0 10
-Partition 3 30 1 2 3
-Partition 3 31 3 4 5
-Wait 5000
+Wait 2000
+Partition 3 1 1 2 3
+Wait 2000
+Partition 3 2 2 3 4
+Wait 2000

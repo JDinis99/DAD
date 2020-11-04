@@ -21,7 +21,7 @@ namespace GigaStore
         public int MinDelay { get; set; }
         public int MaxDelay { get; set; }
 
-        private Dictionary<string, GrpcChannel> _chanels;
+        private Dictionary<string, GrpcChannel> _channels;
         private Dictionary<string, PropagateClient> _clients;
 
         private int replicationFactor;
@@ -42,7 +42,7 @@ namespace GigaStore
         {
             _gigaObjects = new MultiKeyDictionary<string, int, string>();
             _semObjects = new MultiKeyDictionary<string, int, Semaphore>();
-            _chanels = new Dictionary<string, GrpcChannel>();
+            _channels = new Dictionary<string, GrpcChannel>();
             _clients = new Dictionary<string, PropagateClient>();
             _master = new Dictionary<string, string>();
             _down = new Dictionary<string, bool>();
@@ -68,16 +68,29 @@ namespace GigaStore
             {
                 if (servers[i] != ServerId)
                 {
-                    _chanels.Add(servers[i], GrpcChannel.ForAddress(urls[i]));
-                    _clients.Add(servers[i], new PropagateClient(_chanels[servers[i]]));
+                    _channels.Add(servers[i], GrpcChannel.ForAddress(urls[i]));
+                    _clients.Add(servers[i], new PropagateClient(_channels[servers[i]]));
+                    _down.Add(servers[i], false);
+                    Console.WriteLine("server: " + servers[i]);
                 }
-                _down.Add(servers[i], false);
             }
+            _inited = true;
         }
 
 
         public void MakePartition(string partition, List<string> servers, string master)
         {
+            // Delete old partition if existed
+            try
+            {
+                _servers.Remove(partition);
+                Console.WriteLine("REMOVED Partition: " + partition + " master: " + master);
+            }
+            catch
+            {
+                // If not ignored
+            }
+
             Console.WriteLine("New Partition: " + partition + " master: " + master);
             _master.Add(partition, master);
             List<String> tmp = new List<string>();
@@ -536,6 +549,7 @@ namespace GigaStore
                             DeadServerReport(server.Key);
                         }
                     }
+
                 }
             }
         }
