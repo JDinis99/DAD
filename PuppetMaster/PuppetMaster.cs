@@ -21,7 +21,8 @@ namespace PuppetMaster
     {
         private int _no_servers = 5;
         private Boolean _initedServers = false;
-        private Dictionary<string, GrpcChannel> _channels = new Dictionary<string, GrpcChannel>(); 
+        private Dictionary<string, GrpcChannel> _channels = new Dictionary<string, GrpcChannel>();
+        private Dictionary<string, string> _serverUrls = new Dictionary<string, string>();
         private Dictionary<string, GigaStore.PuppetMaster.PuppetMasterClient> _puppetServerClients = new Dictionary<string, GigaStore.PuppetMaster.PuppetMasterClient>();
 
         public delegate void ReplicationFactorDelegate(String factor);
@@ -88,6 +89,7 @@ namespace PuppetMaster
                 Thread.Sleep(500); // give a little for server to init
                 lock (this)
                 {
+                    _serverUrls.Add(server_id, server_url);
                     _channels.Add(server_id, GrpcChannel.ForAddress(server_url));
                     _puppetServerClients.Add(server_id, new GigaStore.PuppetMaster.PuppetMasterClient(_channels[server_id]));
                 }
@@ -127,7 +129,7 @@ namespace PuppetMaster
             WriteToLogger(Environment.NewLine);
             for (int i = 2; i < args.Length; i++)
             {
-                _puppetServerClients[args[i]].Partition(new PartitionRequest { Factor = rep_factor, Name = partition_name });
+                _puppetServerClients[args[i]].Partition(new PartitionRequest { Name = partition_name, Ids = list_servers });
             }
         }
 
@@ -206,6 +208,7 @@ namespace PuppetMaster
             }
             catch (Exception)
             {
+                _serverUrls.Remove(serverId);
                 _channels.Remove(serverId);
                 _puppetServerClients.Remove(serverId);
                 WriteToLogger("Server with id " + serverId + " couldn't be reached - either it successfully crashed or it doesn't exist.");
@@ -411,9 +414,16 @@ namespace PuppetMaster
         {
             if (!_initedServers)
             {
+                String ids = "";
+                String urls = "";
+                foreach (String id in _serverUrls.Keys)
+                {
+                    ids += id + " ";
+                    urls += _serverUrls[id] + " ";
+                }
                 foreach (String id in _puppetServerClients.Keys)
                 {
-                    _puppetServerClients[id].InitServer(new InitServerRequest { });
+                    _puppetServerClients[id].InitServer(new InitServerRequest { Ids = ids, Urls = urls });
                 }
                 _initedServers = true;
             }

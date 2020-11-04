@@ -22,8 +22,8 @@ message ReplicationFactorReply {
 }
 
 message PartitionRequest {
-	int32 factor = 1;
-	string name = 2;
+	string name = 1;
+	string ids = 2;
 }
 
 message PartitionReply {
@@ -63,7 +63,8 @@ message UnfreezeReply {
 }
 
 message InitServerRequest {
-
+	string ids = 1;
+	string urls = 2;
 }
 
 message InitServerReply {

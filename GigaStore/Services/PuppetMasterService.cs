@@ -29,6 +29,13 @@ namespace GigaStore.Services
 
         public override Task<PartitionReply> Partition(PartitionRequest request, ServerCallContext context)
         {
+            String[] ids_as_list = request.Ids.Split(" ");
+            List<string> ids = new List<string>();
+            for (int i=0; i<ids_as_list.Length; i++)
+            {
+                ids.Add(ids_as_list[i]);
+            }
+            _gigaStorage.MakePartition(request.Name, ids, ids_as_list[0]);
             return Task.FromResult(new PartitionReply { Ack = "Success" });
         }
 
@@ -71,7 +78,16 @@ namespace GigaStore.Services
 
         public override Task<InitServerReply> InitServer(InitServerRequest request, ServerCallContext context)
         {
-            _gigaStorage.Init();
+            List<String> ids = new List<String>();
+            List<String> urls = new List<String>();
+            String[] ids_string_as_list = request.Ids.Split(" ");
+            String[] urls_string_as_list = request.Ids.Split(" ");
+            for (int i = 0; i < ids_string_as_list.Length; i++)
+            {
+                ids.Add(ids_string_as_list[i]);
+                urls.Add(urls_string_as_list[i]);
+            }
+            _gigaStorage.Init(ids, urls);
             return Task.FromResult(new InitServerReply { Ack = "Success" });
         }
     }
