@@ -1,6 +1,8 @@
 ﻿using GigaStore;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Enumeration;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -41,7 +43,7 @@ namespace GigaClient
 
         static async Task Main(string[] args)
         {
-            /* add shutdown hook in order to close the client */
+            /* add shutdown hook in order to properly close the client */
             //Console.CancelKeyPress += new ConsoleCancelEventHandler(ShutdownHook);
 
             /* receive and print arguments */
@@ -50,10 +52,10 @@ namespace GigaClient
                 Console.WriteLine($"  arg[{i}] = {args[i]}");
 
             /* check arguments amount */
-            if (args.Length != 2)
+            if (!(args.Length == 2 || args.Length == 3))
             {
                 Console.WriteLine("Invalid amount of arguments.\n" +
-                    "Usage: dotnet run serversCount isAdvanced");
+                    "Usage: dotnet run serversCount isAdvanced [filename]");
                 return;
             }
 
@@ -68,6 +70,12 @@ namespace GigaClient
                 Console.WriteLine("'isAdvanced' must be a value of type Boolean.");
                 return;
             }
+            string filename = null;
+            if (args.Length == 3)
+            {
+                // FIXME validate filename
+                filename = args[2];
+            }
 
             /* create a connection to the gRPC service */
             var random = new Random();
@@ -78,12 +86,37 @@ namespace GigaClient
 
             var frontend = new Frontend(serverId, serversCount, isAdvanced);
 
+            /* read input from file */
+            if (filename != null)
+            {
+                Console.WriteLine("Type a command ('help' for available commands).");
+                try
+                {
+                    using var reader = new StreamReader(filename);
+                    string fileline = null;
+                    do
+                    {
+                        fileline = reader.ReadLine();
+                        Console.WriteLine($"> ${fileline}");
+                        if (fileline != null && fileline != "")
+                            await ExecInputAsync(frontend, fileline, false, reader);
+
+                    } while (fileline != null);
+
+                } 
+                catch (IOException e)
+                {
+                    Console.WriteLine($"IOException: {e.Message}");
+                }
+            }
+
             /* read input */
             Console.WriteLine("Type a command ('help' for available commands).");
+            string line;
             do
             {
                 Console.Write("> ");
-                string line = Console.ReadLine();
+                line = Console.ReadLine();
                 if (line != null && line != "")
                     await ExecInputAsync(frontend, line, false);
 
@@ -92,7 +125,7 @@ namespace GigaClient
         } // Main
 
 
-        private static async Task ExecInputAsync(Frontend frontend, string line, bool repeat)
+        private static async Task ExecInputAsync(Frontend frontend, string line, bool repeat, StreamReader reader = null)
         {
             try
             {
@@ -202,7 +235,16 @@ namespace GigaClient
                     do
                     {
                         Console.Write(">> ");
-                        command = Console.ReadLine();
+                        if (reader == null)
+                        {
+                            command = Console.ReadLine();
+                        }
+                        else
+                        {
+                            command = reader.ReadLine();
+                            Console.WriteLine(command);
+                        }
+
                         if (command != "" && command != null)
                             commands.Add(command);
                     }
@@ -213,7 +255,7 @@ namespace GigaClient
                         foreach (var c in commands)
                         {
                             command = c.Replace("$i", i.ToString());
-                            await ExecInputAsync(frontend, command, true);
+                            await ExecInputAsync(frontend, command, true, reader);
                         }
                     }
 
@@ -252,10 +294,13 @@ namespace GigaClient
             {
                 Console.WriteLine($"InvalidOperationException: {e.Message}");
             }
+            catch (IOException e)
+            {
+                Console.WriteLine($"IOException: {e.Message}");
+            }
 
         } // ExecInputAsync
 
-        /*
 
         private static void ShutdownHook(object sender, EventArgs args)
         {
@@ -264,8 +309,6 @@ namespace GigaClient
             Console.WriteLine("Press any key to exit...");
             Console.ReadKey();
         }
-
-        */
 
     } // class
 
