@@ -20,7 +20,7 @@ namespace GigaStore
                 Console.WriteLine($"  arg[{i}] = {args[i]}");
 
             /* check arguments amount */
-            if (args.Length != 5)
+            if (args.Length != 6)
             {
                 Console.WriteLine("Invalid amount of arguments.\n" + "Usage: dotnet run serverId url minDelay maxDelay nservers isAdvanced");
                 return;
@@ -58,7 +58,7 @@ namespace GigaStore
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     // FIXME variables already parsed and assigned
-                    var serverId = Int32.Parse(args[0]);
+                    var serverId = args[0];
                     var url = args[1];
                     var minDelay = Int32.Parse(args[2]);
                     var maxDelay = Int32.Parse(args[3]);
