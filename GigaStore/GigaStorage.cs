@@ -63,8 +63,7 @@ namespace GigaStore
             {
                 return;
             }
-
-            for (int i = 0; i <= ServersCount; i++)
+            for (int i = 0; i < ServersCount; i++)
             {
                 if (servers[i] != ServerId)
                 {

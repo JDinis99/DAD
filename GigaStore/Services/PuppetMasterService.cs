@@ -81,7 +81,7 @@ namespace GigaStore.Services
             List<String> ids = new List<String>();
             List<String> urls = new List<String>();
             String[] ids_string_as_list = request.Ids.Split(" ");
-            String[] urls_string_as_list = request.Ids.Split(" ");
+            String[] urls_string_as_list = request.Urls.Split(" ");
             for (int i = 0; i < ids_string_as_list.Length; i++)
             {
                 ids.Add(ids_string_as_list[i]);
