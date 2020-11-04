@@ -5,9 +5,6 @@ using System.Threading.Tasks;
 using Grpc.Net.Client;
 using static GigaStore.Propagate;
 using System.Threading;
-using Grpc.Core;
-using System.Drawing.Printing;
-using GigaStore.Services;
 using System.Diagnostics;
 
 namespace GigaStore

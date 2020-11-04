@@ -71,7 +71,11 @@ namespace GigaClient
 
             /* create a connection to the gRPC service */
             var random = new Random();
-            var serverId = random.Next(serversCount) + 1;
+            var index = random.Next(serversCount);
+
+            // FIXME !!!!!!! choose from existing ids
+            var serverId = index.ToString();
+
             var frontend = new Frontend(serverId, serversCount, isAdvanced);
 
             /* read input */
@@ -96,9 +100,9 @@ namespace GigaClient
 
                 if (String.Equals(words[0], "read") && words.Length == 4)
                 {
-                    int partitionId = Int32.Parse(words[1]);
-                    int objectId = Int32.Parse(words[2]);
-                    int serverId = Int32.Parse(words[3]);
+                    var partitionId = words[1];
+                    var objectId = Int32.Parse(words[2]);
+                    var serverId = words[3];
 
                     var readRequest = new ReadRequest
                     {
@@ -113,8 +117,8 @@ namespace GigaClient
                 }
                 else if (String.Equals(words[0], "write") && words.Length > 3)
                 {
-                    int partitionId = Int32.Parse(words[1]);
-                    int objectId = Int32.Parse(words[2]);
+                    var partitionId = words[1];
+                    var objectId = Int32.Parse(words[2]);
 
                     // parse 'value' from input
                     string value;
@@ -145,18 +149,18 @@ namespace GigaClient
                 }
                 else if (String.Equals(words[0], "listServer") && words.Length == 2)
                 {
-                    int serverId = Int32.Parse(words[1]);
+                    var serverId = words[1];
 
                     var listServerRequest = new ListServerRequest();
                     var listServerReply = await frontend.ListServerAsync(listServerRequest, serverId);
 
                     // TODO write message for empty results
                     Console.WriteLine("PartitionId | ObjectId | Value | In Master?");
-                    foreach (var o in listServerReply.Objects)
+                    foreach (var obj in listServerReply.Objects)
                     {
-                        string inMaster = o.InMaster ? "Yes" : "No";
+                        string inMaster = obj.InMaster ? "Yes" : "No";
                         // TODO insert tabs
-                        Console.WriteLine($"{o.PartitionId} | {o.ObjectId} | {o.Value} | {inMaster}");
+                        Console.WriteLine($"{obj.PartitionId} | {obj.ObjectId} | {obj.Value} | {inMaster}");
                     }
 
                 }
@@ -165,11 +169,13 @@ namespace GigaClient
                     var listGloabalRequest = new ListServerRequest();
                     var listGlobalReply = await frontend.ListGlobalAsync(listGloabalRequest);
 
-                    for (var serverId = 1; serverId < listGlobalReply.Length; serverId++)
+                    foreach (var keyValuePair in listGlobalReply)
                     {
-                        // TODO write message for empty results
+                        var serverId = keyValuePair.Key;
+                        var reply = keyValuePair.Value;
+
                         Console.WriteLine($"[SERVER {serverId}]");
-                        foreach (var obj in listGlobalReply[serverId].Objects)
+                        foreach (var obj in reply.Objects)
                         {
                             Console.WriteLine($"  PartitionId: {obj.PartitionId}, ObjectId: {obj.ObjectId}");
                         }

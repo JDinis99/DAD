@@ -49,7 +49,7 @@ namespace GigaStore.Services
             return Task.FromResult(new WriteReply
             {
                 // The current server is already the master for this partition
-                MasterId = "-1"
+                MasterId = null
             });
         }
 
@@ -105,7 +105,7 @@ namespace GigaStore.Services
             return Task.FromResult(new WriteReply
             {
                 // The current server is already the master for this partition
-                MasterId = -1
+                MasterId = null
             });
         }
 

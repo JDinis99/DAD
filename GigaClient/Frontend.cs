@@ -13,33 +13,39 @@ namespace GigaClient
      */
     class Frontend
     {
-        // we assume sequential server ids i.e. from 1 to _nservers (inclusive)
+        private readonly Dictionary<string, string> _servers;
         private readonly int _serversCount;
         private readonly bool _isAdvanced;
 
-        public int ServerId { get; private set; } = -1;
+        public string ServerId { get; private set; } = null;
         private GrpcChannel _channel = null;
         private Giga.GigaClient _client;
 
-        public Frontend(int serverId, int serversCount, bool isAdvanced)
+        public Frontend(string serverId, int serversCount, bool isAdvanced)
         {
+            // FIXME !!!!!!! remove hardcode
+            _servers = new Dictionary<string, string>(serversCount);
+            for (int i = 1; i <= serversCount; i++)
+            {
+                string id = i.ToString();
+                _servers[id] = $"https://localhost:500{id}";
+            }
+
             _serversCount = serversCount;
-            // TODO check if positive serverId (or in between 1 and _nservers)
             EstablishChannel(serverId);
             _isAdvanced = isAdvanced;
         }
 
 
-        private void EstablishChannel(int serverId)
+        private void EstablishChannel(string serverId)
         {
-            if (serverId != ServerId)
+            if (serverId != this.ServerId)
             {
                 Console.Write($"Establishing channel with server {serverId}... ");
                 if (_channel != null) _channel.ShutdownAsync().Wait();
-                // TODO(?) remove hard-coded, use json file or something
-                _channel = GrpcChannel.ForAddress("https://localhost:500" + serverId);
+                _channel = GrpcChannel.ForAddress(_servers[serverId]);
                 _client = new Giga.GigaClient(_channel);
-                ServerId = serverId;
+                this.ServerId = serverId;
                 Console.WriteLine("Established.");
             }
         }
@@ -77,7 +83,7 @@ namespace GigaClient
             {
                 reply = await ClientReadAsync(request);
 
-                if (String.Equals(reply.Value, "N/A") && request.ServerId != -1)
+                if (String.Equals(reply.Value, "N/A") && request.ServerId != null)
                 {
                     EstablishChannel(request.ServerId);
 
@@ -85,7 +91,7 @@ namespace GigaClient
                     {
                         PartitionId = request.PartitionId,
                         ObjectId = request.ObjectId,
-                        ServerId = -1
+                        ServerId = null
                     };
                     reply = await ReadAsync(readRequest); // recursion
                 }
@@ -99,7 +105,7 @@ namespace GigaClient
                 };
                 await CheckStatusAsync(checkStatusRequest);
 
-                if (request.ServerId != -1)
+                if (request.ServerId != null)
                 {
                     EstablishChannel(request.ServerId);
 
@@ -107,7 +113,7 @@ namespace GigaClient
                     {
                         PartitionId = request.PartitionId,
                         ObjectId = request.ObjectId,
-                        ServerId = -1
+                        ServerId = null
                     };
                     reply = await ReadAsync(readRequest); // recursion
                 }
@@ -125,7 +131,7 @@ namespace GigaClient
                 reply = await ClientWriteAsync(request);
 
                 var masterId = reply.MasterId;
-                if (masterId != -1)
+                if (masterId != null)
                 {
                     Console.WriteLine($"Establish a channel with the master server (id: {masterId}) of partition {partitionId}.");
                     EstablishChannel(masterId);
@@ -156,7 +162,7 @@ namespace GigaClient
             return reply;
         }
 
-        public async Task<ListServerReply> ListServerAsync(ListServerRequest request, int serverId)
+        public async Task<ListServerReply> ListServerAsync(ListServerRequest request, string serverId)
         {
             ListServerReply reply;
             try
@@ -179,10 +185,10 @@ namespace GigaClient
             return reply;
         }
 
-        public async Task<ListServerReply[]> ListGlobalAsync(ListServerRequest request)
+        public async Task<Dictionary<string, ListServerReply>> ListGlobalAsync(ListServerRequest request)
         {
-            ListServerReply[] reply = new ListServerReply[_serversCount + 1]; // skip index 0
-            for (int id = 1; id <= _serversCount; id++)
+            var reply = new Dictionary<string, ListServerReply>(_serversCount);
+            foreach (var id in _servers.Keys)
             {
                 try
                 {
@@ -215,11 +221,13 @@ namespace GigaClient
             CheckStatusReply reply = new CheckStatusReply(); // empty reply
             try
             {
-                // FIXME check server_id > server_count
                 // connect to next server_id and check the status of the previous one
-                var newServerId = this.ServerId - 1;
+                //
+                // FIXME !!!!!!! remove Parse and ToString, handle it properly
+                //
+                var newServerId = Int32.Parse(this.ServerId) - 1;
                 if (newServerId == 0) newServerId = _serversCount;
-                EstablishChannel(newServerId);
+                EstablishChannel(newServerId.ToString());
                 await _client.CheckStatusAsync(request);
 
             }
