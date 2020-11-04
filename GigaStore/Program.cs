@@ -20,24 +20,29 @@ namespace GigaStore
                 Console.WriteLine($"  arg[{i}] = {args[i]}");
 
             /* check arguments amount */
-            if (args.Length != 3)
+            if (args.Length != 5)
             {
-                Console.WriteLine("Invalid amount of arguments.\n" + "Usage: dotnet run serverId serversCount isAdvanced");
+                Console.WriteLine("Invalid amount of arguments.\n" + "Usage: dotnet run serverId url minDelay maxDelay nservers isAdvanced");
                 return;
             }
 
             /* validate arguments */
-            if (!Int32.TryParse(args[0], out int serverId) || serverId <= 0)
+            if (!Int32.TryParse(args[2], out int minDelay) || minDelay < 0)
             {
                 Console.WriteLine("'serverId' must be a positive value of type Int32.");
                 return;
             }
-            if (!Int32.TryParse(args[1], out int serversCount) || serversCount <= 0)
+            if (!Int32.TryParse(args[3], out int maxDelay) || maxDelay < 0)
+            {
+                Console.WriteLine("'serverId' must be a positive value of type Int32.");
+                return;
+            }
+            if (!Int32.TryParse(args[4], out int nservers) || nservers <= 0)
             {
                 Console.WriteLine("'serversCount' must be a positive value of type Int32.");
                 return;
             }
-            if (!Boolean.TryParse(args[2], out bool isAdvanced))
+            if (!Boolean.TryParse(args[5], out bool isAdvanced))
             {
                 Console.WriteLine("'isAdvanced' must be a value of type Boolean.");
                 return;
@@ -54,15 +59,20 @@ namespace GigaStore
                 {
                     // FIXME variables already parsed and assigned
                     var serverId = Int32.Parse(args[0]);
-                    var serversCount = Int32.Parse(args[1]);
-                    var isAdvanced = Boolean.Parse(args[2]);
+                    var url = args[1];
+                    var minDelay = Int32.Parse(args[2]);
+                    var maxDelay = Int32.Parse(args[3]);
+                    var nservers = Int32.Parse(args[4]);
+                    var isAdvanced = Boolean.Parse(args[5]);
 
-                    string url = "https://localhost:500" + serverId;
                     GigaStorage giga = GigaStorage.GetGigaStorage();
                     webBuilder.UseUrls(url);
 
+
+                    giga.SetMinDelay(minDelay);
+                    giga.SetMaxDelay(maxDelay);
                     giga.ServerId = serverId;
-                    giga.ServersCount = serversCount;
+                    giga.ServersCount = nservers;
                     giga.IsAdvanced = isAdvanced;
 
                     webBuilder.UseStartup<Startup>();

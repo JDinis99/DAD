@@ -5,7 +5,10 @@ using System.Threading.Tasks;
 using Grpc.Net.Client;
 using static GigaStore.Propagate;
 using System.Threading;
-using Microsoft.AspNetCore.Mvc;
+using Grpc.Core;
+using System.Drawing.Printing;
+using GigaStore.Services;
+using System.Diagnostics;
 
 namespace GigaStore
 {
@@ -25,6 +28,10 @@ namespace GigaStore
         private Dictionary<string, PropagateClient> _clients;
         private AutoResetEvent[] _handles;
         private bool _inited = false;
+        private bool _frozen = false;
+        private int _minDelay;
+        private int _maxDelay;
+        private int _replicationFactor;
 
         // Lists masters for all partitions. First string is the partition and second is the serverId of its master
         private Dictionary<string, string> _master;
@@ -51,8 +58,8 @@ namespace GigaStore
             return _instance;
         }
 
-        public void Init (List<string> servers, List<string> urls)
         // Starts the GRPC clients with the other servers and sets up all axiliary lists
+        public void Init (List<string> servers, List<string> urls)
         {
             // If it has already been initiated then ignore
             if (_inited)
@@ -60,7 +67,6 @@ namespace GigaStore
                 return;
             }
 
-            // Connects to all other servers
             for (int i = 0; i <= ServersCount; i++)
             {
                 if (servers[i] != ServerId)
@@ -72,6 +78,7 @@ namespace GigaStore
             }
 
         }
+
 
         public void MakePartition(string partition, List<string> servers, string master)
         {
@@ -112,7 +119,7 @@ namespace GigaStore
             }
 
             if (threads.Length != 0)
-            {   
+            {
                 // Waits for all locks
                 Console.WriteLine("Awating lock handles");
                 WaitHandle.WaitAll(_handles);
@@ -123,6 +130,7 @@ namespace GigaStore
             _gigaObjects.Add(partition_id, object_id, value);
             _semObjects.Add(partition_id, object_id, new Semaphore(1, 1));
 
+
             // Stores the value on all servers that share this partition
             propagateRequest = new PropagateRequest { PartitionId = partition_id, ObjectId = object_id, Value = value };
             _handles = new AutoResetEvent[_servers[partition_id].Count];
@@ -130,6 +138,7 @@ namespace GigaStore
 
             for (int i = 0; i < _servers[partition_id].Count; i++)
             {
+
                 Console.WriteLine("ServerID: " + i);
                 _handles[i] = new AutoResetEvent(false);
                 int t = i;
@@ -138,6 +147,7 @@ namespace GigaStore
 
                 threads[i] = new Thread(async () => await ThreadPropagateAsync(t, s, propagateRequestTmp));
                 Console.WriteLine("Value Propagated");
+
             }
 
             for (int x = 0; x < threads.Length; x++)
@@ -201,6 +211,7 @@ namespace GigaStore
                 // If there is no semaphore (in case of first write of this object) create one
                 _semObjects.Add(partition, object_id, new Semaphore(1,1));
                 _semObjects[partition][object_id].WaitOne();
+
 
             }
             Console.WriteLine("LOCKED partition: " + partition+ " object: " + object_id);
@@ -303,6 +314,7 @@ namespace GigaStore
          * 
          */
 
+
         // Advanced Version Write
         public void WriteAdvanced(string partition, int object_id, string value)
         {
@@ -380,6 +392,7 @@ namespace GigaStore
             if (iteration >= _servers[partition].Count )
             {
                 Console.WriteLine("No more servers to propagate partition " + partition + " :(");
+                return;
             }
             new_server = _servers[partition][iteration];
 
@@ -450,8 +463,8 @@ namespace GigaStore
             }
 
             await MasterUpdateAsync(old_server, new_server, partition);
-
             Console.WriteLine("IM NOTIFIED THAT SERVER " + old_server + " IS DOWN for partition: " + partition);
+
         }
 
         // Responds is current server is master of partition_id
@@ -558,6 +571,64 @@ namespace GigaStore
         public string GetMaster(string partition)
         {
             return _master[partition];
+        }
+
+
+        public void ChangeReplicationFactor(int factor)
+        {
+            _replicationFactor = factor;
+        }
+
+        public void SetMinDelay(int delay)
+        {
+            _minDelay = delay;
+        }
+
+        public void SetMaxDelay(int delay)
+        {
+            _maxDelay = delay;
+        }
+
+        public void Delay()
+        {
+            Random r = new Random();
+            int rInt = r.Next(_minDelay, _maxDelay);
+            Thread.Sleep(rInt);
+        }
+
+        public Boolean IsFrozen()
+        {
+            return _frozen;
+        }
+
+        public void PrintStatus()
+        {
+            Console.WriteLine("Server up and running");
+        }
+
+        public bool Crash()
+        {
+            try
+            {
+                Process.GetCurrentProcess().Kill();
+                return false;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        public void FreezeServer()
+        {
+            Console.WriteLine("Freezing server");
+            _frozen = true;
+        }
+
+        public void UnfreezeServer()
+        {
+            Console.WriteLine("Unfreezing server");
+            _frozen = false;
         }
 
     }
