@@ -7,7 +7,6 @@ namespace GigaStore.Services
 {
     public class GigaService : Giga.GigaBase
     {
-
         private readonly ILogger<GigaService> _logger;
         private GigaStorage _gigaStorage;
 
@@ -25,7 +24,7 @@ namespace GigaStore.Services
 
         public override Task<ReadReply> Read(ReadRequest request, ServerCallContext context)
         {
-            string value = _gigaStorage.Read(request.PartitionId, request.ObjectId);
+            var value = _gigaStorage.Read(request.PartitionId, request.ObjectId);
             return Task.FromResult(new ReadReply
             {
                 Value = value
@@ -59,16 +58,16 @@ namespace GigaStore.Services
             var reply = new ListServerReply();
 
             var objects = _gigaStorage.ListServer();
-            foreach (var obj in objects)
+            foreach (var o in objects)
             {
-                ListServerReply.Types.Object o = new ListServerReply.Types.Object
+                var obj = new ListServerReply.Types.Object
                 {
-                    PartitionId = obj.PartitionId,
-                    ObjectId = obj.ObjectId,
-                    Value = obj.Value,
-                    InMaster = _gigaStorage.IsMaster(obj.PartitionId)
+                    PartitionId = o.PartitionId,
+                    ObjectId = o.ObjectId,
+                    Value = o.Value,
+                    InMaster = _gigaStorage.IsMaster(o.PartitionId)
                 };
-                reply.Objects.Add(o);
+                reply.Objects.Add(obj);
             }
             return Task.FromResult(reply);
         }
@@ -81,9 +80,7 @@ namespace GigaStore.Services
 
         public override Task<ReadReply> ReadAdvanced(ReadRequest request, ServerCallContext context)
         {
-            Console.WriteLine("Advanced read");
-
-            string value = _gigaStorage.ReadAdvanced(request.PartitionId, request.ObjectId);
+            var value = _gigaStorage.ReadAdvanced(request.PartitionId, request.ObjectId);
             return Task.FromResult(new ReadReply
             {
                 Value = value
@@ -92,19 +89,43 @@ namespace GigaStore.Services
 
         public override Task<WriteReply> WriteAdvanced(WriteRequest request, ServerCallContext context)
         {
-            Console.WriteLine("Advanced write");
-            if (!_gigaStorage.IsMaster(request.PartitionId))
+            var partitionId = request.PartitionId;
+            if (!_gigaStorage.IsMaster(partitionId))
             {
-                // TODO lancar uma execao
-                Console.WriteLine("PARTICAO ERRADA");
+                var serverId = _gigaStorage.ServerId;
+                Console.WriteLine($"This server (id: {serverId}) is not the master server for partition {partitionId}.");
+                return Task.FromResult(new WriteReply
+                {
+                    MasterId = _gigaStorage.GetMaster(partitionId)
+                });
             }
-            // TODO verificar o server
+
             _gigaStorage.WriteAdvanced(request.PartitionId, request.ObjectId, request.Value);
+
             return Task.FromResult(new WriteReply
             {
-                // Empty message as ack
+                // The current server is already the master for this partition
+                MasterId = -1
             });
+        }
 
+        public override Task<ListServerReply> ListServerAdvanced(ListServerRequest request, ServerCallContext context)
+        {
+            var reply = new ListServerReply();
+
+            var objects = _gigaStorage.ListServerAdvanced();
+            foreach (var o in objects)
+            {
+                var obj = new ListServerReply.Types.Object
+                {
+                    PartitionId = o.PartitionId,
+                    ObjectId = o.ObjectId,
+                    Value = o.Value,
+                    InMaster = _gigaStorage.IsMaster(o.PartitionId)
+                };
+                reply.Objects.Add(obj);
+            }
+            return Task.FromResult(reply);
         }
 
 

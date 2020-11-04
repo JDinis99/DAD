@@ -9,10 +9,10 @@ service Giga {
 
   rpc ReadAdvanced (ReadRequest) returns (ReadReply);
   rpc WriteAdvanced (WriteRequest) returns (WriteReply);
+  rpc ListServerAdvanced (ListServerRequest) returns (ListServerReply);
 
   rpc CheckStatus (CheckStatusRequest) returns (CheckStatusReply);
   rpc GetMaster (GetMasterRequest) returns (GetMasterReply);
-
 }
 
 message ReadRequest {

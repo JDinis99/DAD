@@ -18,17 +18,19 @@ namespace GigaStore
         private static readonly GigaStorage _instance = new GigaStorage();
         private MultiKeyDictionary<int, int, string> _gigaObjects;
         private MultiKeyDictionary<int, int, Semaphore> _semObjects;
+
         public int ServerId { get; set; }
         public int ServersCount { get; set; }
         public bool IsAdvanced { get; set; }
+        public int MinDelay { get; set; }
+        public int MaxDelay { get; set; }
+
         private int _aliveServers;
         private GrpcChannel[] _chanels;
         private PropagateClient[] _clients;
         private AutoResetEvent[] _handles;
         private bool _inited = false;
         private bool _frozen = false;
-        private int _minDelay;
-        private int _maxDelay;
         private int _replicationFactor;
 
         // Lists masters for all partitions
@@ -271,8 +273,7 @@ namespace GigaStore
             return value;
         }
 
-        /* // HEY THERE, PLEASE DONT DELETE ME
-        
+        // Base Version List
         public List<Object> ListServer()
         {
             var objects = new List<Object>();
@@ -283,49 +284,13 @@ namespace GigaStore
                     try
                     {
                         _semObjects[partitionId][objectId].WaitOne();
-                    }
-                    catch (KeyNotFoundException e)
-                    {
-                        Console.WriteLine($"KeyNotFoundException: {e.Message}");
-                        // FIXME(?) deviamos criar um semaforo neste cenario?
-                        _semObjects.Add(partitionId, objectId, new Semaphore(1, 1));
-                        _semObjects[partitionId][objectId].WaitOne();
-                    }
-
-                    Console.WriteLine($"[READ] Locked (partition {partitionId}, object {objectId}).");
-                    string value = _gigaObjects[partitionId][objectId];
-                    _semObjects[partitionId][objectId].Release();
-                    Console.WriteLine($"[READ] Unlocked (partition {partitionId}, object {objectId}).");
-
-                    var o = new Object(partitionId, objectId, value);
->>>>>>> cf5bb957bf81f37a9a2f7e9d83bf7fa843643749
-                    objects.Add(o);
-                }
-            }
-            return objects;
-        }
-
-<<<<<<< HEAD
-=======
-        */
-
-        public List<Object> ListServer()
-        {
-            var objects = new List<Object>();
-            foreach (var partitionId in _gigaObjects.Keys)
-            {
-                foreach (var objectId in _gigaObjects[partitionId].Keys)
-                {
-                    try
-                    {
-                        _semObjects[partitionId][objectId].WaitOne();
-                        Console.WriteLine($"[READ] Locked (partition {partitionId}, object {objectId}).");
-                        string value = _gigaObjects[partitionId][objectId];
+                        Console.WriteLine($"[LIST] Locked (partition {partitionId}, object {objectId}).");
+                        var value = _gigaObjects[partitionId][objectId];
                         _semObjects[partitionId][objectId].Release();
-                        Console.WriteLine($"[READ] Unlocked (partition {partitionId}, object {objectId}).");
+                        Console.WriteLine($"[LIST] Unlocked (partition {partitionId}, object {objectId}).");
 
-                        var o = new Object(partitionId, objectId, value);
-                        objects.Add(o);
+                        var obj = new Object(partitionId, objectId, value);
+                        objects.Add(obj);
                     }
                     catch (KeyNotFoundException e)
                     {
@@ -335,14 +300,12 @@ namespace GigaStore
             }
             return objects;
         }
-
 
 
         /*
          * Advanced Version
          * 
          */
-
 
         // Advanced Version Write
         public void WriteAdvanced(int partition_id, int object_id, string value)
@@ -385,6 +348,22 @@ namespace GigaStore
                 value = "N/A";
             }
             return value;
+        }
+
+        // Advanced Version List
+        public List<Object> ListServerAdvanced()
+        {
+            var objects = new List<Object>();
+            foreach (var partitionId in _gigaObjects.Keys)
+            {
+                foreach (var objectId in _gigaObjects[partitionId].Keys)
+                {
+                    var value = _gigaObjects[partitionId][objectId];
+                    var obj = new Object(partitionId, objectId, value);
+                    objects.Add(obj);
+                }
+            }
+            return objects;
         }
 
         // Stores value without blocking a semaphore
@@ -725,20 +704,10 @@ namespace GigaStore
             _replicationFactor = factor;
         }
 
-        public void SetMinDelay(int delay)
-        {
-            _minDelay = delay;
-        }
-
-        public void SetMaxDelay(int delay)
-        {
-            _maxDelay = delay;
-        }
-
         public void Delay()
         {
             Random r = new Random();
-            int rInt = r.Next(_minDelay, _maxDelay);
+            int rInt = r.Next(this.MinDelay, this.MaxDelay);
             Thread.Sleep(rInt);
         }
 
