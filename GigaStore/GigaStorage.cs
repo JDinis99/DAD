@@ -357,13 +357,30 @@ namespace GigaStore
         // Starts all process related to finding out a server is down
         public void DeadServerReport(string down_server)
         {
-            Console.WriteLine("Down Server: " + down_server);
+            Console.WriteLine("DEAD Server: " + down_server);
+            bool isMaster = false;
             // Needs to find a new master for all partitions, this server is master off
             foreach (KeyValuePair<string, string> master in _master)
             {
                 if (master.Value == down_server)
                 {
+                    isMaster = true;
                     ChangeMasterRequest(down_server, master.Key, 0);
+                }
+            }
+            // If server wasnt a master
+            if (!isMaster)
+            {
+                _ = MasterUpdateAsync(down_server, "-1", "-1");
+                // Notify all other servers that old_server_id is down
+                foreach (KeyValuePair<string, PropagateClient> server in _clients)
+                {
+                    // Ignore current server and down servers
+                    if (server.Key == ServerId || server.Key == down_server || _down[server.Key])
+                    {
+                        continue;
+                    }
+                    ChangeMasterNotificationRequest(server.Key, down_server, "-1", "-1");
                 }
             }
         }
@@ -459,12 +476,11 @@ namespace GigaStore
         }
 
         // Marks old server as down, sets new master for partition, removes old server from server list and verifies if another server needs to be contacted
+        // Recieves new_server as "-1" if old server wasnt a master
         public async Task MasterUpdateAsync (string old_server, string new_server, string partition)
         {
             Console.WriteLine("Donwing server: " + old_server + " for: " + new_server + " on partition: " + partition);
             _down[old_server] = true;
-
-            _master[partition] = new_server;
 
             // For every partition remove old server from propate list
             foreach (KeyValuePair<string, List<string>> server in _servers)
@@ -479,12 +495,16 @@ namespace GigaStore
                 }
             }
 
+            if (new_server != "-1")
+            {
+                _master[partition] = new_server;
+            }
 
             // Only propagate if in advanced mode
             if (IsAdvanced)
             {
                 // If not enough servers propagate partition with more servers
-                if (_servers[partition].Count < replicationFactor)
+                if (_servers[partition].Count < replicationFactor - 1)
                 {
                     foreach(KeyValuePair<string, PropagateClient> server in _clients )
                     {
@@ -549,7 +569,17 @@ namespace GigaStore
 
         public string GetMaster(string partition)
         {
-            return _master[partition];
+            string res;
+            try
+            {
+                res = _master[partition];
+            }
+            catch
+            {
+                // TODO Receber no frontend q uma particao n existe
+                res = "3";
+            }
+            return res;
         }
 
 
