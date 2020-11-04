@@ -20,7 +20,7 @@ namespace GigaStore
                 Console.WriteLine($"  arg[{i}] = {args[i]}");
 
             /* check arguments amount */
-            if (args.Length != 5)
+            if (args.Length != 6)
             {
                 Console.WriteLine("Invalid amount of arguments.\n" + "Usage: dotnet run serverId url minDelay maxDelay nservers isAdvanced");
                 return;
@@ -71,7 +71,7 @@ namespace GigaStore
 
                     giga.SetMinDelay(minDelay);
                     giga.SetMaxDelay(maxDelay);
-                    giga.ServerId = serverId;
+                    giga.ServerId = serverId.ToString();
                     giga.ServersCount = nservers;
                     giga.IsAdvanced = isAdvanced;
 

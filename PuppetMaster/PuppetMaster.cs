@@ -20,6 +20,7 @@ namespace PuppetMaster
     public partial class PuppetMaster : Form
     {
         private int _no_servers = 5;
+        private Boolean _isAdvanced = false;
         private Boolean _initedServers = false;
         private Dictionary<string, GrpcChannel> _channels = new Dictionary<string, GrpcChannel>();
         private Dictionary<string, string> _serverUrls = new Dictionary<string, string>();
@@ -84,7 +85,7 @@ namespace PuppetMaster
                 WriteToLogger(Environment.NewLine);
                 Process newServer = new Process();
                 newServer.StartInfo.FileName = ".\\..\\..\\..\\..\\GigaStore\\bin\\Debug\\netcoreapp3.1\\GigaStore.exe";
-                newServer.StartInfo.Arguments = server_id + " " + server_url + " " + min_delay + " " + max_delay + " " + _no_servers;
+                newServer.StartInfo.Arguments = server_id + " " + server_url + " " + min_delay + " " + max_delay + " " + _no_servers + " " + _isAdvanced;
                 newServer.Start();
                 Thread.Sleep(500); // give a little for server to init
                 lock (this)
@@ -141,7 +142,8 @@ namespace PuppetMaster
         public void Status() {
             WriteToLogger("Asking nodes to print their statuses...");
             WriteToLogger(Environment.NewLine);
-            foreach (string id in _puppetServerClients.Keys)
+            Dictionary<string, GigaStore.PuppetMaster.PuppetMasterClient>.KeyCollection keys = _puppetServerClients.Keys;
+            foreach (string id in keys)
             {
                 try
                 {
