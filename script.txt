@@ -5,6 +5,6 @@ Server 4 https://localhost:5004 0 10
 Server 5 https://localhost:5005 0 10
 Wait 2000
 Partition 3 1 1 2 3
-Wait 2000
+Wait 3000
 Partition 3 2 2 3 4
 Wait 2000

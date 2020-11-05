@@ -89,10 +89,10 @@ namespace GigaStore.Services
             });
         }
 
-        public override async Task<PingReply> Ping(PingRequest request, ServerCallContext context)
+        public override  Task<NewPropagatorReply> NewPropagator(NewPropagatorRequest request, ServerCallContext context)
         {
-            Console.WriteLine("Pinged");
-            return await Task.FromResult(new PingReply
+            _gigaStorage.NewPropagator(request.ServerId, request.PartitionId);
+            return Task.FromResult(new NewPropagatorReply
             {
                 // Empty message as ack
             });

@@ -14,7 +14,7 @@ service Propagate {
 
   rpc CheckStatusServers (CheckServersRequest) returns (CheckServersReply);
 
-  rpc Ping (PingRequest) returns (PingReply);
+  rpc NewPropagator (NewPropagatorRequest) returns (NewPropagatorReply);
 }
 
 
@@ -69,10 +69,11 @@ message CheckServersReply {
 
 }
 
-message PingRequest {
-
+message NewPropagatorRequest {
+	string partition_id = 1;
+	string server_id = 2;
 }
 
-message PingReply {
+message NewPropagatorReply {
 
 }

@@ -370,6 +370,11 @@ namespace GigaStore
         // Starts all process related to finding out a server is down
         public void DeadServerReport(string down_server)
         {
+            if (_down[down_server])
+            {
+                return;
+            }
+            _down[down_server] = true;
             Console.WriteLine("DEAD Server: " + down_server);
             bool isMaster = false;
             // Needs to find a new master for all partitions, this server is master off
@@ -378,6 +383,7 @@ namespace GigaStore
                 if (master.Value == down_server)
                 {
                     isMaster = true;
+                    Console.WriteLine("DEAD Server: " + down_server + " Partition: " + master.Key);
                     ChangeMasterRequest(down_server, master.Key, 0);
                 }
             }
@@ -410,12 +416,17 @@ namespace GigaStore
                 return;
             }
             new_server = _servers[partition][iteration];
+            if (new_server == down_server)
+            {
+                ChangeMasterRequest(down_server, partition, iteration + 1);
+                return;
+            }
 
             try
             {
                 Console.WriteLine("changing master from: " + down_server + " to " + new_server);
 
-                ChangeRequest changeRequest = new ChangeRequest { ServerId = down_server};
+                ChangeRequest changeRequest = new ChangeRequest { ServerId = down_server, PartitionId = partition};
                 await _clients[new_server].ChangeMasterAsync(changeRequest);
             }
             catch
@@ -541,6 +552,8 @@ namespace GigaStore
 
                             }
                             await replicateRequest.RequestStream.CompleteAsync();
+                            // Notify all other servers about change in replication
+                            NotifyPropagator(server.Key, partition);
                             break;
                         }
                         catch
@@ -552,6 +565,29 @@ namespace GigaStore
 
                 }
             }
+        }
+
+        //Notifies all other servers that a new servers belongs to partition
+        public void NotifyPropagator (string new_server, string partition)
+        {
+            foreach(KeyValuePair<string, PropagateClient> server in _clients)
+            {
+                // Ignore current server, new server and downed servers
+                if (server.Key == ServerId || server.Key ==  new_server || _down[server.Key])
+                {
+                    continue;
+                }
+                Console.WriteLine("Notifying server: " + server.Key + " that server: " + new_server + " now belongs to partition: " + partition);
+                NewPropagatorRequest newPropagatorRequest = new NewPropagatorRequest { ServerId = new_server, PartitionId = partition };
+                server.Value.NewPropagator(newPropagatorRequest);
+            }
+        }
+
+        // Stores a new server beloging to partition
+        public void NewPropagator(string partition, string new_server)
+        {
+            Console.WriteLine("Notified that server: " + new_server + " now belongs to partition: " + partition);
+            _servers[partition].Add(new_server);
         }
 
         // Gets Partition
@@ -591,7 +627,7 @@ namespace GigaStore
             catch
             {
                 // TODO Receber no frontend q uma particao n existe
-                res = "3";
+                res = "-1";
             }
             return res;
         }
