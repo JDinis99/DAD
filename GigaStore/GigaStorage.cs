@@ -528,11 +528,14 @@ namespace GigaStore
                         continue;
                     }
                     // If not enough servers propagate partition with more servers
-                    if (_servers[partitions.Key].Count < _replicationFactor)
+                    
+                    foreach(KeyValuePair<string, PropagateClient> server in _clients )
                     {
-                        Console.WriteLine(" --------------------- NEED MORE REPLICAS --------------------- ");
-                        foreach(KeyValuePair<string, PropagateClient> server in _clients )
+                        if (_servers[partitions.Key].Count < _replicationFactor - 1)
                         {
+
+                            Console.WriteLine(" --------------------- NEED MORE REPLICAS --------------------- ");
+                            Console.WriteLine("Count: " + _servers[partitions.Key].Count + " _replicationFactor: " + (_replicationFactor - 1));
                             // Ignore current server, down servers and servers this partition already propagates to
                             if (server.Key == ServerId || _down[server.Key] || _servers[partitions.Key].Contains(server.Key))
                             {
@@ -540,6 +543,7 @@ namespace GigaStore
                             }
                             try
                             {
+                                // TODO Some sleep to ensure its there is something to write??
                                 Console.WriteLine("Asking server: " + server.Key + " to replicate partition: " + partitions.Key);
                                 var replicateRequest = _clients[server.Key].ReplicatePartition();
                                 foreach (KeyValuePair<int, string> entry in _gigaObjects[partitions.Key])
@@ -553,6 +557,7 @@ namespace GigaStore
 
                                 }
                                 await replicateRequest.RequestStream.CompleteAsync();
+                                Console.WriteLine("Adding server: " + server.Key + " to partition: " + partitions.Key);
                                 _servers[partitions.Key].Add(server.Key);
                                 // Notify all other servers about change in replication
                                 NotifyPropagator(server.Key, partitions.Key);
@@ -560,6 +565,7 @@ namespace GigaStore
                             }
                             catch (KeyNotFoundException)
                             {
+                                _servers[partitions.Key].Add(server.Key);
                                 // Ignore. Nothing to propagate yet
                             }
                             catch
@@ -568,8 +574,8 @@ namespace GigaStore
                                 DeadServerReport(server.Key);
                             }
                         }
-
                     }
+
                 }
             }
         }
@@ -603,7 +609,6 @@ namespace GigaStore
             return _gigaObjects[partition];
         } 
 
-        // TODO Test this
         // Checks status of server_id in case a client suspects is down
         public async Task CheckStatusAsync (string server)
         {
