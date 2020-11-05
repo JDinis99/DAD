@@ -8,3 +8,6 @@ Partition 3 1 1 2 3
 Wait 3000
 Partition 3 2 2 3 4
 Wait 2000
+ReplicationFactor 3
+Wait 100
+Crash 2

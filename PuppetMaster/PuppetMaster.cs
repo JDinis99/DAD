@@ -20,7 +20,7 @@ namespace PuppetMaster
     public partial class PuppetMaster : Form
     {
         private int _no_servers = 5;
-        private Boolean _isAdvanced = false;
+        private Boolean _isAdvanced = true;
         private Boolean _initedServers = false;
         private Dictionary<string, GrpcChannel> _channels = new Dictionary<string, GrpcChannel>();
         private Dictionary<string, string> _serverUrls = new Dictionary<string, string>();

@@ -24,7 +24,6 @@ namespace GigaStore
         private Dictionary<string, GrpcChannel> _channels;
         private Dictionary<string, PropagateClient> _clients;
 
-        private int replicationFactor;
         private AutoResetEvent[] _handles;
         private bool _inited = false;
         private bool _frozen = false;
@@ -435,6 +434,7 @@ namespace GigaStore
                 ChangeMasterRequest(down_server, partition, iteration + 1);
                 // If it failed, the new server is also down
                 DeadServerReport(new_server);
+                return;
             }
 
             // If we have succed in changing master we notify other servers
@@ -482,15 +482,8 @@ namespace GigaStore
         // Changes Master of partition with new server and downs old server
         public async Task ChangeMasterNotificationAsync(string old_server, string new_server, string partition)
         {
-            // If already knew then ignore
-            if (_down[old_server])
-            {
-                return;
-            }
-
-            await MasterUpdateAsync(old_server, new_server, partition);
             Console.WriteLine("IM NOTIFIED THAT SERVER " + old_server + " IS DOWN for partition: " + partition);
-
+            await MasterUpdateAsync(old_server, new_server, partition);
         }
 
         // Responds is current server is master of partition_id
@@ -527,42 +520,56 @@ namespace GigaStore
             // Only propagate if in advanced mode
             if (IsAdvanced)
             {
-                // If not enough servers propagate partition with more servers
-                if (_servers[partition].Count < replicationFactor - 1)
+                // Check for all partitions current server is master off
+                foreach (KeyValuePair<String, String> partitions in _master )
                 {
-                    foreach(KeyValuePair<string, PropagateClient> server in _clients )
+                    if (partitions.Value != ServerId)
                     {
-                        // Ignore current server, down servers and servers this partition already propagates to
-                        if (server.Key == ServerId || _down[server.Key] || _servers[partition].Contains(server.Key))
-                        {
-                            continue;
-                        }
-                        try
-                        {
-                            Console.WriteLine("Asking server: " + server.Key + " to replicate partition: " + partition);
-                            var replicateRequest = _clients[server.Key].ReplicatePartition();
-                            foreach (KeyValuePair<int, string> entry in _gigaObjects[partition])
-                            {
-                                await replicateRequest.RequestStream.WriteAsync(new ReplicateRequest
-                                {
-                                    PartitionId = partition,
-                                    ObjectId = entry.Key,
-                                    Value = entry.Value
-                                });
-
-                            }
-                            await replicateRequest.RequestStream.CompleteAsync();
-                            // Notify all other servers about change in replication
-                            NotifyPropagator(server.Key, partition);
-                            break;
-                        }
-                        catch
-                        {
-                            // If it fails server is down
-                            DeadServerReport(server.Key);
-                        }
+                        continue;
                     }
+                    // If not enough servers propagate partition with more servers
+                    if (_servers[partitions.Key].Count < _replicationFactor)
+                    {
+                        Console.WriteLine(" --------------------- NEED MORE REPLICAS --------------------- ");
+                        foreach(KeyValuePair<string, PropagateClient> server in _clients )
+                        {
+                            // Ignore current server, down servers and servers this partition already propagates to
+                            if (server.Key == ServerId || _down[server.Key] || _servers[partitions.Key].Contains(server.Key))
+                            {
+                                continue;
+                            }
+                            try
+                            {
+                                Console.WriteLine("Asking server: " + server.Key + " to replicate partition: " + partitions.Key);
+                                var replicateRequest = _clients[server.Key].ReplicatePartition();
+                                foreach (KeyValuePair<int, string> entry in _gigaObjects[partitions.Key])
+                                {
+                                    await replicateRequest.RequestStream.WriteAsync(new ReplicateRequest
+                                    {
+                                        PartitionId = partitions.Key,
+                                        ObjectId = entry.Key,
+                                        Value = entry.Value
+                                    });
 
+                                }
+                                await replicateRequest.RequestStream.CompleteAsync();
+                                _servers[partitions.Key].Add(server.Key);
+                                // Notify all other servers about change in replication
+                                NotifyPropagator(server.Key, partitions.Key);
+                                break;
+                            }
+                            catch (KeyNotFoundException)
+                            {
+                                // Ignore. Nothing to propagate yet
+                            }
+                            catch
+                            {
+                                // If it fails server is down
+                                DeadServerReport(server.Key);
+                            }
+                        }
+
+                    }
                 }
             }
         }
@@ -584,7 +591,7 @@ namespace GigaStore
         }
 
         // Stores a new server beloging to partition
-        public void NewPropagator(string partition, string new_server)
+        public void NewPropagator(string new_server, string partition)
         {
             Console.WriteLine("Notified that server: " + new_server + " now belongs to partition: " + partition);
             _servers[partition].Add(new_server);
