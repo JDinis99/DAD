@@ -148,6 +148,7 @@ namespace PuppetMaster
             newClient.StartInfo.Arguments = _no_servers + " " + _isAdvanced + " " + "..\\..\\..\\..\\GigaClient\\" + script_file;
             newClient.Start();
             //TODO - ADICIONAR INFORMACOES DE CLIENT A DICIONARIOS COM OS URLS E CHANNELS
+            WriteToLogger(Environment.NewLine);
         }
 
         public void Status() {
