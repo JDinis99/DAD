@@ -57,6 +57,7 @@ namespace GigaStore
             {
                 return;
             }
+            _inited = true;
 
             // Set up lists
             _gigaObjects = new MultiKeyDictionary<string, int, string>();
@@ -77,7 +78,6 @@ namespace GigaStore
                     Console.WriteLine("server: " + servers[i]);
                 }
             }
-            _inited = true;
         }
 
 
