@@ -128,6 +128,7 @@ namespace GigaClient
             var partitionId = request.PartitionId;
             try
             {
+                Console.WriteLine("Write Server ID: " + this.ServerId);
                 reply = await ClientWriteAsync(request);
 
                 var masterId = reply.MasterId;
@@ -136,11 +137,13 @@ namespace GigaClient
                     Console.WriteLine($"Establish a channel with the master server (id: {masterId}) of partition {partitionId}.");
                     EstablishChannel(masterId);
                     reply = await WriteAsync(request); // recursion
+                    Console.WriteLine("Wrote");
                 }
 
             }
             catch (RpcException e)
             {
+                Console.WriteLine("Write Exeption Server ID: " + this.ServerId);
                 Console.WriteLine($"RpcException: {e.StatusCode}");
                 var checkStatusRequest = new CheckStatusRequest
                 {
@@ -219,6 +222,7 @@ namespace GigaClient
         public async Task<CheckStatusReply> CheckStatusAsync(CheckStatusRequest request)
         {
             CheckStatusReply reply = new CheckStatusReply(); // empty reply
+            Console.WriteLine("Server ID: " + this.ServerId);
             try
             {
                 // connect to next server_id and check the status of the previous one

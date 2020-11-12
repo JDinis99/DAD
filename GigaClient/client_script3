@@ -1,0 +1,8 @@
+write 2 2 "p1-o2-v2"
+read 2 5 -1
+read 2 6 -1
+read 1 1 s3
+listServer 1
+listServer 3
+wait 5000
+listGlobal

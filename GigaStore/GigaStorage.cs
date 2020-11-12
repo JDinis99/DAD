@@ -39,13 +39,7 @@ namespace GigaStore
 
         private GigaStorage()
         {
-            _gigaObjects = new MultiKeyDictionary<string, int, string>();
-            _semObjects = new MultiKeyDictionary<string, int, Semaphore>();
-            _channels = new Dictionary<string, GrpcChannel>();
-            _clients = new Dictionary<string, PropagateClient>();
-            _master = new Dictionary<string, string>();
-            _down = new Dictionary<string, bool>();
-            _servers = new Dictionary<string, List<string>>();
+            
         }
 
         // Singleton Design Patter "constructor"
@@ -63,6 +57,16 @@ namespace GigaStore
             {
                 return;
             }
+
+            // Set up lists
+            _gigaObjects = new MultiKeyDictionary<string, int, string>();
+            _semObjects = new MultiKeyDictionary<string, int, Semaphore>();
+            _channels = new Dictionary<string, GrpcChannel>();
+            _clients = new Dictionary<string, PropagateClient>();
+            _master = new Dictionary<string, string>();
+            _down = new Dictionary<string, bool>();
+            _servers = new Dictionary<string, List<string>>();
+
             for (int i = 0; i < ServersCount; i++)
             {
                 if (servers[i] != ServerId)
