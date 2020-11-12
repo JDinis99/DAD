@@ -7,7 +7,7 @@ Wait 4000
 ReplicationFactor 3
 Partition 3 1 1 2 3
 Partition 3 2 2 4 5
-Client 1000
+Wait 1000
 Client c1 http://localhost:3001 client_script1
 Status
 Wait 10000
