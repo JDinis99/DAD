@@ -1,6 +1,7 @@
 ﻿using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace GigaStore.Services
@@ -17,10 +18,9 @@ namespace GigaStore.Services
         }
 
 
-        /*
-         * Base Version
-         * 
-         */
+        /* ====================================================================== */
+        /* ====[                        Base Version                        ]==== */
+        /* ====================================================================== */
 
         public override Task<ReadReply> Read(ReadRequest request, ServerCallContext context)
         {
@@ -73,10 +73,9 @@ namespace GigaStore.Services
         }
 
 
-        /*
-         * Advanced Version
-         * 
-         */
+        /* ====================================================================== */
+        /* ====[                      Advanced Version                      ]==== */
+        /* ====================================================================== */
 
         public override Task<ReadReply> ReadAdvanced(ReadRequest request, ServerCallContext context)
         {
@@ -129,15 +128,26 @@ namespace GigaStore.Services
         }
 
 
-        /*
-         * Auxiliary
-         * 
-         */
+        /* ====================================================================== */
+        /* ====[                         Auxilliary                         ]==== */
+        /* ====================================================================== */
 
         public override async Task<CheckStatusReply> CheckStatus(CheckStatusRequest request, ServerCallContext context)
         {
-            Console.WriteLine($"Checking status of server {request.ServerId}...");
-            await _gigaStorage.CheckStatusAsync(request.ServerId);
+            // Add requested server ids to a Set, to remove all duplicates
+            var ids = new HashSet<string>(request.ServerId.Count);
+            foreach (var serverId in request.ServerId)
+            {
+                ids.Add(serverId);
+            }
+
+            // Check the status of each server id
+            foreach (var serverId in ids)
+            {
+                Console.WriteLine($"Checking status of server {serverId}...");
+                await _gigaStorage.CheckStatusAsync(serverId);
+            }
+
             return await Task.FromResult(new CheckStatusReply
             {
                 // Empty message as ack

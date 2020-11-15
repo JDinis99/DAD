@@ -36,7 +36,7 @@ message WriteReply {
 }
 
 message ListServerRequest {
-
+	// empty reply
 }
 
 message ListServerReply {
@@ -50,11 +50,11 @@ message ListServerReply {
 }
 
 message CheckStatusRequest {
-	string server_id = 1;
+	repeated string server_id = 1;
 }
 
 message CheckStatusReply {
-
+	// empty reply
 }
 
 message GetMasterRequest {

@@ -373,7 +373,7 @@ namespace GigaStore
         // Starts all process related to finding out a server is down
         public void DeadServerReport(string down_server)
         {
-            if (_down[down_server])
+            if (_down.ContainsKey(down_server))
             {
                 return;
             }
@@ -398,7 +398,7 @@ namespace GigaStore
                 foreach (KeyValuePair<string, PropagateClient> server in _clients)
                 {
                     // Ignore current server and down servers
-                    if (server.Key == ServerId || server.Key == down_server || _down[server.Key])
+                    if (server.Key == ServerId || server.Key == down_server || _down.ContainsKey(server.Key))
                     {
                         continue;
                     }
@@ -449,7 +449,7 @@ namespace GigaStore
             foreach(KeyValuePair<string, PropagateClient> server in _clients )
             {
                 // Ignore current server, new master and down servers
-                if (server.Key == ServerId || server.Key == new_server|| _down[server.Key])
+                if (server.Key == ServerId || server.Key == new_server|| _down.ContainsKey(server.Key))
                 {
                     continue;
                 }
@@ -463,7 +463,7 @@ namespace GigaStore
         {
             try
             {
-                Console.WriteLine("Notifying server: " + server + " about down server " + down_server+ " with new " + new_server + " for partition " + partition);
+                Console.WriteLine("Notifying server: " + server + " about down server " + down_server + " with new " + new_server + " for partition " + partition);
                 ChangeNotificationRequest changeNotificationRequest = new ChangeNotificationRequest { ServerId = down_server, NewServerId = new_server, PartitionId = partition };
                 _clients[server].ChangeMasterNotificationAsync(changeNotificationRequest);
             }
@@ -541,7 +541,7 @@ namespace GigaStore
                             Console.WriteLine(" --------------------- NEED MORE REPLICAS --------------------- ");
                             Console.WriteLine("Count: " + _servers[partitions.Key].Count + " _replicationFactor: " + (_replicationFactor - 1));
                             // Ignore current server, down servers and servers this partition already propagates to
-                            if (server.Key == ServerId || _down[server.Key] || _servers[partitions.Key].Contains(server.Key))
+                            if (server.Key == ServerId || _down.ContainsKey(server.Key) || _servers[partitions.Key].Contains(server.Key))
                             {
                                 continue;
                             }
@@ -590,7 +590,7 @@ namespace GigaStore
             foreach(KeyValuePair<string, PropagateClient> server in _clients)
             {
                 // Ignore current server, new server and downed servers
-                if (server.Key == ServerId || server.Key ==  new_server || _down[server.Key])
+                if (server.Key == ServerId || server.Key ==  new_server || _down.ContainsKey(server.Key))
                 {
                     continue;
                 }
@@ -618,7 +618,7 @@ namespace GigaStore
         {
             try
             {
-                if (!_down[server])
+                if (!_down.ContainsKey(server))
                 {
                     CheckServersRequest checkServersRequest = new CheckServersRequest { };
                     await _clients[server].CheckStatusServersAsync(checkServersRequest);

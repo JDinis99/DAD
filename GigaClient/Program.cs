@@ -55,7 +55,7 @@ namespace GigaClient
             if (!(args.Length == 2 || args.Length == 3))
             {
                 Console.WriteLine("Invalid amount of arguments.\n" +
-                    "Usage: dotnet run serversCount isAdvanced [filename]");
+                    "Usage: dotnet run (int)serversCount (bool)isAdvanced [(filepath)filename]");
                 return;
             }
 
@@ -73,18 +73,12 @@ namespace GigaClient
             string filename = null;
             if (args.Length == 3)
             {
-                // FIXME validate filename
+                // TODO validate filename
                 filename = args[2];
             }
 
             /* create a connection to the gRPC service */
-            var random = new Random();
-            var index = random.Next(serversCount) + 1;
-
-            // FIXME !!!!!!! choose from existing ids
-            var serverId = index.ToString();
-
-            var frontend = new Frontend(serverId, serversCount, isAdvanced);
+            var frontend = new Frontend(serversCount, isAdvanced);
 
             /* read input from file */
             if (filename != null)
@@ -188,12 +182,10 @@ namespace GigaClient
                     var listServerReply = await frontend.ListServerAsync(listServerRequest, serverId);
 
                     // TODO write message for empty results
-                    Console.WriteLine("PartitionId | ObjectId | Value | In Master?");
                     foreach (var obj in listServerReply.Objects)
                     {
                         string inMaster = obj.InMaster ? "Yes" : "No";
-                        // TODO insert tabs
-                        Console.WriteLine($"{obj.PartitionId} | {obj.ObjectId} | {obj.Value} | {inMaster}");
+                        Console.WriteLine($"  PartitionId: {obj.PartitionId}, ObjectId: {obj.ObjectId}, Value: {obj.Value}, Master: {inMaster}");
                     }
 
                 }
@@ -210,7 +202,7 @@ namespace GigaClient
                         Console.WriteLine($"[SERVER {serverId}]");
                         foreach (var obj in reply.Objects)
                         {
-                            Console.WriteLine($"  PartitionId: {obj.PartitionId}, ObjectId: {obj.ObjectId}");
+                            Console.WriteLine($"  PartitionId: {obj.PartitionId}, ObjectId: {obj.ObjectId}, Value: {obj.Value}");
                         }
                     }
 
