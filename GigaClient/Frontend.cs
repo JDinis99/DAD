@@ -24,6 +24,7 @@ namespace GigaClient
 
         public Frontend(int serversCount, bool isAdvanced)
         {
+            // TODO throw exception if serversCount <= 0
             _serversCount = serversCount;
             _isAdvanced = isAdvanced;
 
@@ -141,24 +142,20 @@ namespace GigaClient
             {
                 DEBUG("[WRITE] START");
                 reply = await ClientWriteAsync(request);
-                DEBUG("[WRITE] SUCCESS");
 
                 var masterId = reply.MasterId;
-
-                if (masterId != null && masterId != "-1")
+                if (masterId != "-1" && masterId != null)
                 {
                     DEBUG("[WRITE] MASTER");
                     Console.WriteLine($"Establish a channel with the master server (id: {masterId}) of partition {partitionId}.");
                     EstablishChannel(masterId);
                     reply = await WriteAsync(request); // recursion
-
                 }
 
             }
             catch (RpcException e)
             {
                 DEBUG("[WRITE] EXCEPTION");
-
                 Console.WriteLine($"RpcException: {e.StatusCode}");
                 await CheckCurrentServerStatus();
 
@@ -166,12 +163,16 @@ namespace GigaClient
                 var getMasterReply = await GetMasterAsync(getMasterRequest);
                 var masterId = getMasterReply.MasterId;
 
-                Console.WriteLine($"Establish a channel with the master server (id: {masterId}) of partition {partitionId}.");
-                EstablishChannel(masterId);
+                if (masterId != "-1" && masterId != null) 
+                {
+                    Console.WriteLine($"Establish a channel with the master server (id: {masterId}) of partition {partitionId}.");
+                    EstablishChannel(masterId);
+                }
                 reply = await WriteAsync(request); // recursion
 
             }
 
+            DEBUG("[WRITE] COMPLETE");
             return reply;
         }
 
@@ -193,7 +194,7 @@ namespace GigaClient
                 reply = new ListServerReply(); // empty reply;
             }
 
-            Console.WriteLine($"Establish a channel with the server that preceded the operation (id: {previousId}).");
+            Console.WriteLine($"Establish a channel with the server that preceded the ListServer operation (id: {previousId}).");
             EstablishChannel(previousId);
             return reply;
         }
@@ -219,7 +220,7 @@ namespace GigaClient
                 }
             }
 
-            Console.WriteLine($"Establish a channel with the server that preceded the operation (id: {previousId}).");
+            Console.WriteLine($"Establish a channel with the server that preceded the ListGlobal operation (id: {previousId}).");
             EstablishChannel(previousId);
             return reply;
         }
@@ -235,25 +236,26 @@ namespace GigaClient
             try
             {
                 DEBUG("[CHECK] START");
-                // Connect to random server_id and check the status of the suspicious one
+                Console.WriteLine($"Checking status of server {this.ServerId}.");
+                // Connect to random serverId (hopefully one that isnt down) and check the status of the suspicious ones
                 var random = new Random();
                 var index = random.Next(_serversCount);
                 var newServerId = _servers.Keys.ElementAt(index);
                 Console.WriteLine($"Establish a channel with a random server (id: {newServerId}).");
                 EstablishChannel(newServerId);
                 await _client.CheckStatusAsync(request);
-                DEBUG("[CHECK] SUCCESS");
 
             }
             catch (RpcException e)
             {
-                DEBUG("[CHECK] EXCEPTION");
                 Console.WriteLine($"RpcException: {e.StatusCode}");
+                // Exception -> the newServer is also suspicious
                 request.ServerId.Add(this.ServerId);
                 await CheckStatusAsync(request); // recursion
 
             }
 
+            DEBUG("[CHECK] COMPLETE");
             return reply;
         }
 
@@ -262,22 +264,23 @@ namespace GigaClient
             GetMasterReply reply;
             try
             {
-                DEBUG("[MASTER] START");
                 reply = await _client.GetMasterAsync(request);
-                DEBUG("[MASTER] SUCCESS");
             }
             catch (RpcException e)
             {
-                DEBUG("[MASTER] EXCEPTION");
                 Console.WriteLine($"RpcException: {e.StatusCode}");
                 await CheckCurrentServerStatus();
                 reply = await GetMasterAsync(request); // recursion
             }
 
+            if (reply.MasterId == "-1")
+                Console.WriteLine($"The partition {request.PartitionId} does not exist.");
+            
+            DEBUG($"[MASTER] REPLY: {reply.MasterId}");
             return reply;
         }
 
-        public void DEBUG(string message="") 
+        public void DEBUG(string message) 
         {
             // TODO dont forget to delete this function afterwards
             Console.ForegroundColor = ConsoleColor.Red;

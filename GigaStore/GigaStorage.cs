@@ -618,16 +618,21 @@ namespace GigaStore
         {
             try
             {
+                DEBUG($"[CHECK] SERVER {server}");
                 if (!_down.ContainsKey(server))
                 {
+                    DEBUG("[CHECK] NOT DOWN");
                     CheckServersRequest checkServersRequest = new CheckServersRequest { };
                     await _clients[server].CheckStatusServersAsync(checkServersRequest);
                 }
+                DEBUG("[CHECK] SUCCESS");
             }
             catch
             {
+                DEBUG("[CHECK] EXCEPTION");
                 // If server is down
                 DeadServerReport(server);
+                DEBUG("[CHECK] REPORTED");
             }
         }
 
@@ -694,6 +699,13 @@ namespace GigaStore
         {
             Console.WriteLine("Unfreezing server");
             _frozen = false;
+        }
+
+        public void DEBUG(string message) {
+            // TODO dont forget to delete this function afterwards
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("DEBUG: " + message);
+            Console.ResetColor();
         }
 
     }
