@@ -144,7 +144,8 @@ namespace GigaClient
                 reply = await ClientWriteAsync(request);
 
                 var masterId = reply.MasterId;
-                if (masterId != "-1" && masterId != null)
+                // if the current server is not the master
+                if (masterId != this.ServerId && masterId != "")
                 {
                     DEBUG("[WRITE] MASTER");
                     Console.WriteLine($"Establish a channel with the master server (id: {masterId}) of partition {partitionId}.");
@@ -162,8 +163,8 @@ namespace GigaClient
                 var getMasterRequest = new GetMasterRequest { PartitionId = partitionId };
                 var getMasterReply = await GetMasterAsync(getMasterRequest);
                 var masterId = getMasterReply.MasterId;
-
-                if (masterId != "-1" && masterId != null) 
+                // if the current server is not the master
+                if (masterId != this.ServerId && masterId != "") 
                 {
                     Console.WriteLine($"Establish a channel with the master server (id: {masterId}) of partition {partitionId}.");
                     EstablishChannel(masterId);
@@ -273,9 +274,9 @@ namespace GigaClient
                 reply = await GetMasterAsync(request); // recursion
             }
 
-            if (reply.MasterId == "-1")
-                Console.WriteLine($"The partition {request.PartitionId} does not exist.");
-            
+            if (reply.MasterId == "")
+                Console.WriteLine($"The partition {request.PartitionId} does not have a master.");
+
             DEBUG($"[MASTER] REPLY: {reply.MasterId}");
             return reply;
         }

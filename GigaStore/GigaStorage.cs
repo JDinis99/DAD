@@ -373,7 +373,7 @@ namespace GigaStore
         // Starts all process related to finding out a server is down
         public void DeadServerReport(string down_server)
         {
-            if (_down.ContainsKey(down_server))
+            if (_down[down_server])
             {
                 return;
             }
@@ -398,7 +398,7 @@ namespace GigaStore
                 foreach (KeyValuePair<string, PropagateClient> server in _clients)
                 {
                     // Ignore current server and down servers
-                    if (server.Key == ServerId || server.Key == down_server || _down.ContainsKey(server.Key))
+                    if (server.Key == ServerId || server.Key == down_server || _down[server.Key])
                     {
                         continue;
                     }
@@ -449,7 +449,7 @@ namespace GigaStore
             foreach(KeyValuePair<string, PropagateClient> server in _clients )
             {
                 // Ignore current server, new master and down servers
-                if (server.Key == ServerId || server.Key == new_server|| _down.ContainsKey(server.Key))
+                if (server.Key == ServerId || server.Key == new_server|| _down[server.Key])
                 {
                     continue;
                 }
@@ -488,12 +488,6 @@ namespace GigaStore
         {
             Console.WriteLine("IM NOTIFIED THAT SERVER " + old_server + " IS DOWN for partition: " + partition);
             await MasterUpdateAsync(old_server, new_server, partition);
-        }
-
-        // Responds is current server is master of partition_id
-        public bool IsMaster(string partition_id)
-        {
-            return _master[partition_id] == ServerId;
         }
 
         // Marks old server as down, sets new master for partition, removes old server from server list and verifies if another server needs to be contacted
@@ -541,7 +535,7 @@ namespace GigaStore
                             Console.WriteLine(" --------------------- NEED MORE REPLICAS --------------------- ");
                             Console.WriteLine("Count: " + _servers[partitions.Key].Count + " _replicationFactor: " + (_replicationFactor - 1));
                             // Ignore current server, down servers and servers this partition already propagates to
-                            if (server.Key == ServerId || _down.ContainsKey(server.Key) || _servers[partitions.Key].Contains(server.Key))
+                            if (server.Key == ServerId || _down[server.Key] || _servers[partitions.Key].Contains(server.Key))
                             {
                                 continue;
                             }
@@ -590,7 +584,7 @@ namespace GigaStore
             foreach(KeyValuePair<string, PropagateClient> server in _clients)
             {
                 // Ignore current server, new server and downed servers
-                if (server.Key == ServerId || server.Key ==  new_server || _down.ContainsKey(server.Key))
+                if (server.Key == ServerId || server.Key ==  new_server || _down[server.Key])
                 {
                     continue;
                 }
@@ -619,7 +613,7 @@ namespace GigaStore
             try
             {
                 DEBUG($"[CHECK] SERVER {server}");
-                if (!_down.ContainsKey(server))
+                if (!_down[server])
                 {
                     DEBUG("[CHECK] NOT DOWN");
                     CheckServersRequest checkServersRequest = new CheckServersRequest { };
@@ -636,21 +630,26 @@ namespace GigaStore
             }
         }
 
+        /*
+        // Responds if the current server is the master of partition_id
+        public bool IsMaster(string partition_id) {
+            return _master[partition_id] == this.ServerId;
+        }
+        */
 
-
-        public string GetMaster(string partition)
+        public string GetMaster(string partitionId)
         {
-            string res;
+            string masterId;
             try
             {
-                res = _master[partition];
+                masterId = _master[partitionId];
+                return masterId;
             }
             catch
             {
-                // TODO Receber no frontend q uma particao n existe
-                res = "-1";
+                masterId = "";
+                return masterId;
             }
-            return res;
         }
 
 

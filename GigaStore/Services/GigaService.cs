@@ -34,38 +34,44 @@ namespace GigaStore.Services
         public override Task<WriteReply> Write(WriteRequest request, ServerCallContext context)
         {
             var partitionId = request.PartitionId;
-            if (!_gigaStorage.IsMaster(partitionId))
+
+            var masterId = _gigaStorage.GetMaster(partitionId);
+            var currentServerId = _gigaStorage.ServerId;
+            if (currentServerId != masterId)
             {
-                var serverId = _gigaStorage.ServerId;
-                Console.WriteLine($"This server (id: {serverId}) is not the master server for partition {partitionId}.");
+                Console.WriteLine($"This server (id: {currentServerId}) is not the master server for partition {partitionId}.");
                 return Task.FromResult(new WriteReply
                 {
-                    MasterId = _gigaStorage.GetMaster(partitionId)
+                    MasterId = masterId
                 });
             }
 
             _gigaStorage.Write(request.PartitionId, request.ObjectId, request.Value);
 
+            // The current server is already the master for this partition
             return Task.FromResult(new WriteReply
             {
-                // The current server is already the master for this partition
-                MasterId = "-1"
+                MasterId = currentServerId
             });
         }
 
         public override Task<ListServerReply> ListServer(ListServerRequest request, ServerCallContext context)
         {
-            var reply = new ListServerReply();
+            var currentServerId = _gigaStorage.ServerId;
 
+            var reply = new ListServerReply();
             var objects = _gigaStorage.ListServer();
             foreach (var o in objects)
             {
+                var masterId = _gigaStorage.GetMaster(o.PartitionId);
+                var inMaster = (currentServerId == masterId);
+
                 var obj = new ListServerReply.Types.Object
                 {
                     PartitionId = o.PartitionId,
                     ObjectId = o.ObjectId,
                     Value = o.Value,
-                    InMaster = _gigaStorage.IsMaster(o.PartitionId)
+                    InMaster = inMaster
                 };
                 reply.Objects.Add(obj);
             }
@@ -89,38 +95,39 @@ namespace GigaStore.Services
         public override Task<WriteReply> WriteAdvanced(WriteRequest request, ServerCallContext context)
         {
             var partitionId = request.PartitionId;
-            if (!_gigaStorage.IsMaster(partitionId))
-            {
-                var serverId = _gigaStorage.ServerId;
-                Console.WriteLine($"This server (id: {serverId}) is not the master server for partition {partitionId}.");
-                return Task.FromResult(new WriteReply
-                {
-                    MasterId = _gigaStorage.GetMaster(partitionId)
+
+            var masterId = _gigaStorage.GetMaster(partitionId);
+            var currentServerId = _gigaStorage.ServerId;
+            if (currentServerId != masterId) {
+                Console.WriteLine($"This server (id: {currentServerId}) is not the master server for partition {partitionId}.");
+                return Task.FromResult(new WriteReply {
+                    MasterId = masterId
                 });
             }
 
             _gigaStorage.WriteAdvanced(request.PartitionId, request.ObjectId, request.Value);
 
-            return Task.FromResult(new WriteReply
-            {
-                // The current server is already the master for this partition
-                MasterId = "-1"
+            // The current server is already the master for this partition
+            return Task.FromResult(new WriteReply {
+                MasterId = currentServerId
             });
         }
 
         public override Task<ListServerReply> ListServerAdvanced(ListServerRequest request, ServerCallContext context)
         {
-            var reply = new ListServerReply();
+            var currentServerId = _gigaStorage.ServerId;
 
+            var reply = new ListServerReply();
             var objects = _gigaStorage.ListServerAdvanced();
-            foreach (var o in objects)
-            {
-                var obj = new ListServerReply.Types.Object
-                {
+            foreach (var o in objects) {
+                var masterId = _gigaStorage.GetMaster(o.PartitionId);
+                var inMaster = (currentServerId == masterId);
+
+                var obj = new ListServerReply.Types.Object {
                     PartitionId = o.PartitionId,
                     ObjectId = o.ObjectId,
                     Value = o.Value,
-                    InMaster = _gigaStorage.IsMaster(o.PartitionId)
+                    InMaster = inMaster
                 };
                 reply.Objects.Add(obj);
             }
@@ -156,9 +163,10 @@ namespace GigaStore.Services
 
         public override async Task<GetMasterReply> GetMaster(GetMasterRequest request, ServerCallContext context)
         {
+            var masterId = _gigaStorage.GetMaster(request.PartitionId);
             return await Task.FromResult(new GetMasterReply
             {
-                MasterId = _gigaStorage.GetMaster(request.PartitionId)
+                MasterId = masterId
             });
         }
 

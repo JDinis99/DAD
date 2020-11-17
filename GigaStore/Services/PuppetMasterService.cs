@@ -41,7 +41,7 @@ namespace GigaStore.Services
 
         public override Task<StatusReply> Status(StatusRequest request, ServerCallContext context)
         {
-            Boolean frozen = CheckFreeze();
+            Boolean frozen = _gigaStorage.CheckFreeze();
             if (!frozen)
             {
                 Console.WriteLine("Server up and running ");
