@@ -20,6 +20,7 @@ namespace PuppetMaster
     public partial class PuppetMaster : Form
     {
         private int _no_servers = 5;
+        private int _delay = 5000; //delay to stabilize servers on init
         private Boolean _isAdvanced = false;
         private Boolean _initedServers = false;
         private Dictionary<string, GrpcChannel> _channels = new Dictionary<string, GrpcChannel>();
@@ -127,6 +128,7 @@ namespace PuppetMaster
             }
             // Make sure all servers are inited
             InitAllServers();
+            Thread.Sleep(_delay); // give time for servers to stabilize
             WriteToLogger("Storing " + rep_factor + " replicas of partition " + partition_name + " on servers " + list_servers + "...");
             WriteToLogger(Environment.NewLine);
             Dictionary<string, GigaStore.PuppetMaster.PuppetMasterClient>.KeyCollection keys = _puppetServerClients.Keys;

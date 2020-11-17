@@ -666,8 +666,9 @@ namespace GigaStore
             Thread.Sleep(rInt);
         }
 
-        public Boolean IsFrozen()
+        public Boolean CheckFreeze()
         {
+            Delay();
             return _frozen;
         }
 
