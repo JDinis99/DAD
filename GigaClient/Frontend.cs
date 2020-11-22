@@ -22,19 +22,12 @@ namespace GigaClient
         private GrpcChannel _channel = null;
         private Giga.GigaClient _client;
 
-        public Frontend(int serversCount, bool isAdvanced)
+        public Frontend(int serversCount, bool isAdvanced, Dictionary<string, string> servers)
         {
-            // TODO throw exception if serversCount <= 0
+            // TODO validate input arguments
             _serversCount = serversCount;
             _isAdvanced = isAdvanced;
-
-            // TODO remove hardcode
-            _servers = new Dictionary<string, string>(_serversCount); 
-            for (int i = 1; i <= serversCount; i++)
-            {
-                string id = $"{i}"; // TODO change to $"s{i}"
-                _servers[id] = $"https://localhost:500{i}";
-            }
+            _servers = servers;
 
             var random = new Random();
             var index = random.Next(_serversCount);
@@ -42,49 +35,28 @@ namespace GigaClient
             EstablishChannel(serverId);
         }
 
-
         private void EstablishChannel(string serverId)
         {
             Console.ForegroundColor = ConsoleColor.Yellow;
 
             if (serverId != this.ServerId)
             {
-                Console.Write($"Establishing channel with server {serverId}... ");
-                if (_channel != null) _channel.ShutdownAsync().Wait();
-                _channel = GrpcChannel.ForAddress(_servers[serverId]);
-                _client = new Giga.GigaClient(_channel);
-                this.ServerId = serverId;
-                Console.WriteLine("Established.");
+                try {
+                    Console.Write($"Establishing channel with server {serverId}... ");
+                    if (_channel != null) _channel.ShutdownAsync().Wait();
+                    _channel = GrpcChannel.ForAddress(_servers[serverId]);
+                    _client = new Giga.GigaClient(_channel);
+                    this.ServerId = serverId;
+                    Console.WriteLine("Established.");
+                }
+                catch (Exception e) {
+                    Console.WriteLine("Failed.");
+                    Console.ResetColor();
+                    throw e; // rethrow exception
+                }
             }
 
             Console.ResetColor();
-        }
-
-        private AsyncUnaryCall<ReadReply> ClientReadAsync(ReadRequest request)
-        {
-            if (_isAdvanced)
-                return _client.ReadAdvancedAsync(request);
-            return _client.ReadAsync(request);
-        }
-
-        private AsyncUnaryCall<WriteReply> ClientWriteAsync(WriteRequest request)
-        {
-            if (_isAdvanced)
-                return _client.WriteAdvancedAsync(request);
-            return _client.WriteAsync(request);
-        }
-
-        private AsyncUnaryCall<ListServerReply> ClientListServerAsync(ListServerRequest request)
-        {
-            if (_isAdvanced)
-                return _client.ListServerAdvancedAsync(request);
-            return _client.ListServerAsync(request);
-        }
-
-        private async Task<CheckStatusReply> CheckCurrentServerStatus() {
-            var checkStatusRequest = new CheckStatusRequest();
-            checkStatusRequest.ServerId.Add(this.ServerId);
-            return await CheckStatusAsync(checkStatusRequest);
         }
 
 
@@ -140,14 +112,12 @@ namespace GigaClient
             var partitionId = request.PartitionId;
             try
             {
-                DEBUG("[WRITE] START");
                 reply = await ClientWriteAsync(request);
 
                 var masterId = reply.MasterId;
                 // if the current server is not the master
                 if (masterId != this.ServerId && masterId != "")
                 {
-                    DEBUG("[WRITE] MASTER");
                     Console.WriteLine($"Establish a channel with the master server (id: {masterId}) of partition {partitionId}.");
                     EstablishChannel(masterId);
                     reply = await WriteAsync(request); // recursion
@@ -156,7 +126,6 @@ namespace GigaClient
             }
             catch (RpcException e)
             {
-                DEBUG("[WRITE] EXCEPTION");
                 Console.WriteLine($"RpcException: {e.StatusCode}");
                 await CheckCurrentServerStatus();
 
@@ -173,7 +142,6 @@ namespace GigaClient
 
             }
 
-            DEBUG("[WRITE] COMPLETE");
             return reply;
         }
 
@@ -236,7 +204,6 @@ namespace GigaClient
             CheckStatusReply reply = new CheckStatusReply(); // empty reply
             try
             {
-                DEBUG("[CHECK] START");
                 Console.WriteLine($"Checking status of server {this.ServerId}.");
                 // Connect to random serverId (hopefully one that isnt down) and check the status of the suspicious ones
                 var random = new Random();
@@ -256,7 +223,6 @@ namespace GigaClient
 
             }
 
-            DEBUG("[CHECK] COMPLETE");
             return reply;
         }
 
@@ -277,17 +243,44 @@ namespace GigaClient
             if (reply.MasterId == "")
                 Console.WriteLine($"The partition {request.PartitionId} does not have a master.");
 
-            DEBUG($"[MASTER] REPLY: {reply.MasterId}");
             return reply;
         }
 
+        private AsyncUnaryCall<ReadReply> ClientReadAsync(ReadRequest request) {
+            if (_isAdvanced)
+                return _client.ReadAdvancedAsync(request);
+            return _client.ReadAsync(request);
+        }
+
+        private AsyncUnaryCall<WriteReply> ClientWriteAsync(WriteRequest request) {
+            if (_isAdvanced)
+                return _client.WriteAdvancedAsync(request);
+            return _client.WriteAsync(request);
+        }
+
+        private AsyncUnaryCall<ListServerReply> ClientListServerAsync(ListServerRequest request) {
+            if (_isAdvanced)
+                return _client.ListServerAdvancedAsync(request);
+            return _client.ListServerAsync(request);
+        }
+
+        private async Task<CheckStatusReply> CheckCurrentServerStatus() {
+            var checkStatusRequest = new CheckStatusRequest();
+            checkStatusRequest.ServerId.Add(this.ServerId);
+            return await CheckStatusAsync(checkStatusRequest);
+        }
+
+
+        /* ====[ NOT USED ]====
+        
         public void DEBUG(string message) 
         {
-            // TODO dont forget to delete this function afterwards
             Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine("DEBUG: " + message);
             Console.ResetColor();
         }
+
+        */
 
     } // class
 

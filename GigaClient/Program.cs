@@ -41,21 +41,29 @@ namespace GigaClient
             "---------------------------------------";
 
 
+        /* ====================================================================== */
+        /* ====[                            Main                            ]==== */
+        /* ====================================================================== */
+
         static async Task Main(string[] args)
         {
+            Console.WriteLine(); // insert newline
+
             /* add shutdown hook in order to properly close the client */
             //Console.CancelKeyPress += new ConsoleCancelEventHandler(ShutdownHook);
 
             /* receive and print arguments */
             Console.WriteLine($"Received {args.Length} arguments:");
             for (int i = 0; i < args.Length; i++)
-                Console.WriteLine($"  arg[{i}] = {args[i]}");
+                Console.WriteLine($"  args[{i}] = {args[i]}");
+
+            Console.WriteLine(); // insert newline
 
             /* check arguments amount */
-            if (!(args.Length == 2 || args.Length == 3))
+            if (!(args.Length == 3 || args.Length == 4))
             {
                 Console.WriteLine("Invalid amount of arguments.\n" +
-                    "Usage: dotnet run (int)serversCount (bool)isAdvanced [(filepath)filename]");
+                    "Usage: dotnet run (int)serversCount (bool)isAdvanced (string)servers [(filepath)filename]");
                 return;
             }
 
@@ -65,20 +73,40 @@ namespace GigaClient
                 Console.WriteLine("'serversCount' must be a positive value of type Int32.");
                 return;
             }
+
             if (!Boolean.TryParse(args[1], out bool isAdvanced))
             {
                 Console.WriteLine("'isAdvanced' must be a value of type Boolean.");
                 return;
             }
+
+            Dictionary<string, string> servers;
+            try {
+                servers = ParseServers(args[2]);
+            }
+            catch (ArgumentException e) {
+                Console.WriteLine($"ArgumentException: {e.Message}");
+                return;
+            }
+
+            Console.WriteLine(); // insert newline
+
             string filename = null;
-            if (args.Length == 3)
+            if (args.Length == 4)
             {
                 // TODO validate filename
-                filename = args[2];
+                filename = args[3];
             }
 
             /* create a connection to the gRPC service */
-            var frontend = new Frontend(serversCount, isAdvanced);
+            Frontend frontend;
+            try {
+                frontend = new Frontend(serversCount, isAdvanced, servers);
+            }
+            catch (UriFormatException e) {
+                Console.WriteLine($"UriFormatException: {e.Message}");
+                return;
+            }
 
             /* read input from file */
             if (filename != null)
@@ -101,10 +129,13 @@ namespace GigaClient
                 catch (IOException e)
                 {
                     Console.WriteLine($"IOException: {e.Message}");
+                    return;
                 }
             }
 
-            /* read input */
+            Console.WriteLine(); // insert newline
+
+            /* read input from command line */
             Console.WriteLine("Type a command ('help' for available commands).");
             string line;
             do
@@ -118,6 +149,10 @@ namespace GigaClient
 
         } // Main
 
+
+        /* ====================================================================== */
+        /* ====[                          Commands                          ]==== */
+        /* ====================================================================== */
 
         private static async Task ExecInputAsync(Frontend frontend, string line, bool repeat, StreamReader reader = null)
         {
@@ -294,6 +329,44 @@ namespace GigaClient
         } // ExecInputAsync
 
 
+        /* ====================================================================== */
+        /* ====[                         Auxilliary                         ]==== */
+        /* ====================================================================== */
+
+        /* this function receives a string like "id1:url1,id2:url2,[...]" and returns a dictionary {id1: url1, id2: url2, [...]} */
+        private static Dictionary<string, string> ParseServers(string serversString) {
+            var serversDict = new Dictionary<string, string>();
+
+            try {
+                char[] charSeparator;
+                charSeparator = new char[] { ',' };
+                string[] servers = serversString.Split(charSeparator, StringSplitOptions.RemoveEmptyEntries);
+
+                charSeparator = new char[] { ':' };
+                string[] pair;
+                foreach (string server in servers) {
+                    pair = server.Split(charSeparator, StringSplitOptions.RemoveEmptyEntries);
+                    if (servers.Length != 2) throw new ArgumentException(/* TODO insert message */);
+                    string id = pair[0];
+                    string url = pair[1];
+                    serversDict[id] = url;
+                }
+            }
+            catch {
+                throw new ArgumentException("Input string is poorly formatted.");
+            }
+
+            Console.WriteLine("Servers:");
+            foreach (KeyValuePair<string, string> kvp in serversDict) {
+                Console.WriteLine($"  servers[{kvp.Key}] = {kvp.Value}");
+            }
+
+            return serversDict;
+        }
+
+
+        /* ====[ NOT USED ]====
+
         private static void ShutdownHook(object sender, EventArgs args)
         {
             // FIXME ShutdownHook not working properly
@@ -301,6 +374,16 @@ namespace GigaClient
             Console.WriteLine("Press any key to exit...");
             Console.ReadKey();
         }
+
+
+        public void DEBUG(string message) 
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("DEBUG: " + message);
+            Console.ResetColor();
+        }
+
+        */
 
     } // class
 
