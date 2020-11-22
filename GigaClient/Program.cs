@@ -356,9 +356,9 @@ namespace GigaClient
                 throw new ArgumentException("Input string is poorly formatted.");
             }
 
-            Console.WriteLine("Servers:");
+            Console.WriteLine("Servers (id -> url):");
             foreach (KeyValuePair<string, string> kvp in serversDict) {
-                Console.WriteLine($"  servers[{kvp.Key}] = {kvp.Value}");
+                Console.WriteLine($"  {kvp.Key} -> {kvp.Value}");
             }
 
             return serversDict;
