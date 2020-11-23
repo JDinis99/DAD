@@ -14,6 +14,7 @@ using System.Windows.Forms;
 using System.Configuration;
 using System.Reflection.Metadata;
 using System.IO;
+using GigaClient;
 
 namespace PuppetMaster
 {
@@ -26,7 +27,9 @@ namespace PuppetMaster
         private Dictionary<string, GrpcChannel> _channels = new Dictionary<string, GrpcChannel>();
         private Dictionary<string, string> _serverUrls = new Dictionary<string, string>();
         private Dictionary<string, GigaStore.PuppetMaster.PuppetMasterClient> _puppetServerClients = new Dictionary<string, GigaStore.PuppetMaster.PuppetMasterClient>();
-        //TODO - ADICIONAR DICIONARIOS DE LIGACOES A CLIENTS
+        private Dictionary<string, GrpcChannel> _clientChannels = new Dictionary<string, GrpcChannel>();
+        private Dictionary<string, string> _clientUrls = new Dictionary<string, string>();
+        private Dictionary<string, PuppetMasterClient.PuppetMasterClientClient> _puppetClientClients = new Dictionary<string, PuppetMasterClient.PuppetMasterClientClient>();
 
         public delegate void ReplicationFactorDelegate(String factor);
         public delegate void CreateServerDelegate(String[] args);
@@ -143,19 +146,36 @@ namespace PuppetMaster
             String username = args[0];
             String client_url = args[1];
             String script_file = args[2];
-            WriteToLogger("Creating new client with username " + username + " on URL " + client_url + " to run script " + script_file + "...");
-            WriteToLogger(Environment.NewLine);
-            Process newClient = new Process();
-            newClient.StartInfo.FileName = ".\\..\\..\\..\\..\\GigaClient\\bin\\Debug\\netcoreapp3.1\\GigaClient.exe";
-            newClient.StartInfo.Arguments = _no_servers + " " + _isAdvanced + " " + "..\\..\\..\\..\\GigaClient\\" + script_file;
-            newClient.Start();
-            //TODO - ADICIONAR INFORMACOES DE CLIENT A DICIONARIOS COM OS URLS E CHANNELS
+
+            if (!_clientChannels.ContainsKey(username))
+            {
+                WriteToLogger("Creating new client with username " + username + " on URL " + client_url + " to run script " + script_file + "...");
+                WriteToLogger(Environment.NewLine);
+                String servers = "";
+                Dictionary<string, string>.KeyCollection keys = _serverUrls.Keys;
+                foreach (String id in keys)
+                {
+                    servers += id + ":" + _serverUrls[id] + ",";
+                }
+                Process newClient = new Process();
+                newClient.StartInfo.FileName = ".\\..\\..\\..\\..\\GigaClient\\bin\\Debug\\netcoreapp3.1\\GigaClient.exe";
+                newClient.StartInfo.Arguments = _no_servers + " " + _isAdvanced + " " + servers + " " +  "..\\..\\..\\..\\GigaClient\\" + script_file;
+                newClient.Start();
+                lock (this)
+                {
+                    _clientUrls.Add(username, client_url);
+                    _clientChannels.Add(username, GrpcChannel.ForAddress(client_url));
+                    _puppetClientClients.Add(username, new PuppetMasterClient.PuppetMasterClientClient(_clientChannels[username]));
+                }
+            }
+             
             WriteToLogger(Environment.NewLine);
         }
 
         public void Status() {
             WriteToLogger("Asking nodes to print their statuses...");
             WriteToLogger(Environment.NewLine);
+            // Ask all servers to print their status
             Dictionary<string, GigaStore.PuppetMaster.PuppetMasterClient>.KeyCollection keys = _puppetServerClients.Keys;
             foreach (string id in keys)
             {
@@ -171,6 +191,26 @@ namespace PuppetMaster
                 catch (Exception)
                 {
                     WriteToLogger("Server with id " + id + " couldn't be reached.");
+                    WriteToLogger(Environment.NewLine);
+                }
+            }
+
+            // Ask all clients to print their status
+            Dictionary<string, PuppetMasterClient.PuppetMasterClientClient>.KeyCollection clientKeys = _puppetClientClients.Keys;
+            foreach (string id in clientKeys)
+            {
+                try
+                {
+                    var reply = _puppetClientClients[id].ClientStatus(new ClientStatusRequest { });
+                    if (reply.Ack.Equals("Success"))
+                    {
+                        WriteToLogger("Client with username " + id + " is up and running.");
+                        WriteToLogger(Environment.NewLine);
+                    }
+                }
+                catch (Exception)
+                {
+                    WriteToLogger("Client with username " + id + " couldn't be reached.");
                     WriteToLogger(Environment.NewLine);
                 }
             }

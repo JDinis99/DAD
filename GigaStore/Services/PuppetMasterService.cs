@@ -41,16 +41,9 @@ namespace GigaStore.Services
 
         public override Task<StatusReply> Status(StatusRequest request, ServerCallContext context)
         {
-            Boolean frozen = _gigaStorage.CheckFreeze();
-            if (!frozen)
-            {
-                Console.WriteLine("Server up and running ");
-                return Task.FromResult(new StatusReply { Ack = "Success" });
-            }
-            else
-            {
-                return Task.FromResult(new StatusReply { Ack = "Unsuccess" });
-            }
+            WaitUnfreeze();
+            Console.WriteLine("Server up and running ");
+            return Task.FromResult(new StatusReply { Ack = "Success" });
         }
 
         public override Task<CrashReply> CrashServer(CrashRequest request, ServerCallContext context)
@@ -96,6 +89,13 @@ namespace GigaStore.Services
             }
             _gigaStorage.Init(ids, urls);
             return Task.FromResult(new InitServerReply { Ack = "Success" });
+        }
+
+        public void WaitUnfreeze()
+        {
+            Semaphore sem = _gigaStorage.GetFrozenSemaphore();
+            sem.WaitOne();
+            sem.Release();
         }
     }
 }

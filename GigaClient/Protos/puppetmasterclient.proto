@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+option csharp_namespace = "GigaClient";
+
+service PuppetMasterClient {
+	rpc ClientStatus (ClientStatusRequest) returns (ClientStatusReply);
+}
+
+message ClientStatusRequest {
+
+}
+
+message ClientStatusReply {
+	string ack = 1;
+}

@@ -26,7 +26,8 @@ namespace GigaStore
 
         private AutoResetEvent[] _handles;
         private bool _inited = false;
-        private bool _frozen = false;
+        //private bool _frozen = false;
+        private Semaphore _frozen = new Semaphore(1, 1);
         private int _replicationFactor;
 
         // Lists masters for all partitions. First string is the partition and second is the serverId of its master
@@ -665,12 +666,6 @@ namespace GigaStore
             Thread.Sleep(rInt);
         }
 
-        public Boolean CheckFreeze()
-        {
-            Delay();
-            return _frozen;
-        }
-
         public void PrintStatus()
         {
             Console.WriteLine("Server up and running");
@@ -689,16 +684,21 @@ namespace GigaStore
             }
         }
 
+        public Semaphore GetFrozenSemaphore()
+        {
+            return _frozen;
+        }
+
         public void FreezeServer()
         {
             Console.WriteLine("Freezing server");
-            _frozen = true;
+            _frozen.WaitOne();
         }
 
         public void UnfreezeServer()
         {
             Console.WriteLine("Unfreezing server");
-            _frozen = false;
+            _frozen.Release();
         }
 
         public void DEBUG(string message) {
