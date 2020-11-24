@@ -155,7 +155,7 @@ namespace PuppetMaster
                 Dictionary<string, string>.KeyCollection keys = _serverUrls.Keys;
                 foreach (String id in keys)
                 {
-                    servers += id + ":" + _serverUrls[id] + ",";
+                    servers += id + "," + _serverUrls[id] + ";";
                 }
                 Process newClient = new Process();
                 newClient.StartInfo.FileName = ".\\..\\..\\..\\..\\GigaClient\\bin\\Debug\\netcoreapp3.1\\GigaClient.exe";
