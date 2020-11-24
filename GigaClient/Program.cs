@@ -82,7 +82,7 @@ namespace GigaClient
 
             Dictionary<string, string> servers;
             try {
-                servers = ParseServers(args[2]);
+                servers = ParseServers(args[2], serversCount);
             }
             catch (ArgumentException e) {
                 Console.WriteLine($"ArgumentException: {e.Message}");
@@ -333,27 +333,25 @@ namespace GigaClient
         /* ====[                         Auxilliary                         ]==== */
         /* ====================================================================== */
 
-        /* this function receives a string like "id1:url1,id2:url2,[...]" and returns a dictionary {id1: url1, id2: url2, [...]} */
-        private static Dictionary<string, string> ParseServers(string serversString) {
+        private static readonly string PARSE_USAGE = "-> Usage: id1,url1;id2,url2;[...]";
+
+        /* this function receives a string like "id1,url1;id2,url2;[...]" and returns a dictionary {id1: url1, id2: url2, [...]} */
+        private static Dictionary<string, string> ParseServers(string serversString, int serversCount) {
             var serversDict = new Dictionary<string, string>();
 
-            try {
-                char[] charSeparator;
-                charSeparator = new char[] { ',' };
-                string[] servers = serversString.Split(charSeparator, StringSplitOptions.RemoveEmptyEntries);
+            char[] charSeparator;
+            charSeparator = new char[] { ';' };
+            string[] servers = serversString.Split(charSeparator, StringSplitOptions.RemoveEmptyEntries);
+            if (servers.Length != serversCount) throw new ArgumentException($"The ammount of supplied servers doesnt match the command-line argument 'serversCount'.\n{PARSE_USAGE}");
 
-                charSeparator = new char[] { ':' };
-                string[] pair;
-                foreach (string server in servers) {
-                    pair = server.Split(charSeparator, StringSplitOptions.RemoveEmptyEntries);
-                    if (servers.Length != 2) throw new ArgumentException(/* TODO insert message */);
-                    string id = pair[0];
-                    string url = pair[1];
-                    serversDict[id] = url;
-                }
-            }
-            catch {
-                throw new ArgumentException("Input string is poorly formatted.");
+            charSeparator = new char[] { ',' };
+            string[] pair;
+            foreach (string server in servers) {
+                pair = server.Split(charSeparator, StringSplitOptions.RemoveEmptyEntries);
+                if (pair.Length != 2) throw new ArgumentException($"The 'servers' command-line argument is poorly formatted.\n{PARSE_USAGE}");
+                string id = pair[0];
+                string url = pair[1];
+                serversDict[id] = url;
             }
 
             Console.WriteLine("Servers (id -> url):");
