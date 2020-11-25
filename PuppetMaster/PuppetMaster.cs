@@ -159,7 +159,7 @@ namespace PuppetMaster
                 }
                 Process newClient = new Process();
                 newClient.StartInfo.FileName = ".\\..\\..\\..\\..\\GigaClient\\bin\\Debug\\netcoreapp3.1\\GigaClient.exe";
-                newClient.StartInfo.Arguments = _no_servers + " " + _isAdvanced + " " + servers + " " +  "..\\..\\..\\..\\GigaClient\\" + script_file;
+                newClient.StartInfo.Arguments = _no_servers + " " + _isAdvanced + " \"" + servers + "\" " +  "..\\..\\..\\..\\GigaClient\\" + script_file;
                 newClient.Start();
                 lock (this)
                 {
