@@ -163,7 +163,7 @@ namespace GigaClient
                 if (String.Equals(words[0], "read") && words.Length == 4)
                 {
                     var partitionId = words[1];
-                    var objectId = Int32.Parse(words[2]);
+                    var objectId = words[2];
                     var serverId = words[3];
 
                     var readRequest = new ReadRequest
@@ -180,7 +180,7 @@ namespace GigaClient
                 else if (String.Equals(words[0], "write") && words.Length > 3)
                 {
                     var partitionId = words[1];
-                    var objectId = Int32.Parse(words[2]);
+                    var objectId = words[2];
 
                     // parse 'value' from input
                     string value;
