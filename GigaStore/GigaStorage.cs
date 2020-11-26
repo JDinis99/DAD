@@ -12,8 +12,8 @@ namespace GigaStore
     public class GigaStorage
     {
         private static readonly GigaStorage _instance = new GigaStorage();
-        private MultiKeyDictionary<string, int, string> _gigaObjects;
-        private MultiKeyDictionary<string, int, Semaphore> _semObjects;
+        private MultiKeyDictionary<string, string, string> _gigaObjects;
+        private MultiKeyDictionary<string, string, Semaphore> _semObjects;
 
         public string ServerId { get; set; }
         public int ServersCount { get; set; }
@@ -61,8 +61,8 @@ namespace GigaStore
             _inited = true;
 
             // Set up lists
-            _gigaObjects = new MultiKeyDictionary<string, int, string>();
-            _semObjects = new MultiKeyDictionary<string, int, Semaphore>();
+            _gigaObjects = new MultiKeyDictionary<string, string, string>();
+            _semObjects = new MultiKeyDictionary<string, string, Semaphore>();
             _channels = new Dictionary<string, GrpcChannel>();
             _clients = new Dictionary<string, PropagateClient>();
             _master = new Dictionary<string, string>();
@@ -115,7 +115,7 @@ namespace GigaStore
          */
 
         // Base version Write
-        public void Write(string partition_id, int object_id, string value)
+        public void Write(string partition_id, string object_id, string value)
         {
             // Locks object on all servers that share this partition
             PropagateRequest propagateRequest;
@@ -221,7 +221,7 @@ namespace GigaStore
         }
 
         // Locks an object
-        public void Lock(string partition, int object_id)
+        public void Lock(string partition, string object_id)
         {
             Console.WriteLine("LOCKING partition: " + partition + " object: " + object_id);
 
@@ -241,7 +241,7 @@ namespace GigaStore
         }
 
         // Stores an object from propagation and releases the lock
-        public void Store(string partition, int object_id, string value)
+        public void Store(string partition, string object_id, string value)
         {
             _gigaObjects.Add(partition, object_id, value);
             _semObjects[partition][object_id].Release();
@@ -250,7 +250,7 @@ namespace GigaStore
         }
 
         // Base Version Read
-        public string Read(string partition, int objectId)
+        public string Read(string partition, string objectId)
         {
             string value;
             try
@@ -303,7 +303,7 @@ namespace GigaStore
          */
 
         // Advanced Version Write
-        public void WriteAdvanced(string partition, int object_id, string value)
+        public void WriteAdvanced(string partition, string object_id, string value)
         {
             PropagateRequest propagateRequest;
             string server;
@@ -330,7 +330,7 @@ namespace GigaStore
         }
 
         // Advanced Version Read
-        public string ReadAdvanced(string partition_id, int object_id)
+        public string ReadAdvanced(string partition_id, string object_id)
         {
             string value;
             try
@@ -361,7 +361,7 @@ namespace GigaStore
         }
 
         // Stores value without blocking a semaphore
-        public void StoreAdvanced(string partition_id, int object_id, string value)
+        public void StoreAdvanced(string partition_id, string object_id, string value)
         {
             _gigaObjects.Add(partition_id, object_id, value);
         }
@@ -545,7 +545,7 @@ namespace GigaStore
                                 // TODO Some sleep to ensure its there is something to write??
                                 Console.WriteLine("Asking server: " + server.Key + " to replicate partition: " + partitions.Key);
                                 var replicateRequest = _clients[server.Key].ReplicatePartition();
-                                foreach (KeyValuePair<int, string> entry in _gigaObjects[partitions.Key])
+                                foreach (KeyValuePair<string, string> entry in _gigaObjects[partitions.Key])
                                 {
                                     await replicateRequest.RequestStream.WriteAsync(new ReplicateRequest
                                     {
@@ -603,7 +603,7 @@ namespace GigaStore
         }
 
         // Gets Partition
-        public Dictionary<int, string> GetPartition (string partition)
+        public Dictionary<string, string> GetPartition (string partition)
         {
             return _gigaObjects[partition];
         } 
@@ -712,10 +712,10 @@ namespace GigaStore
     public class Object
     {
         public string PartitionId { get; }
-        public int ObjectId { get; }
+        public string ObjectId { get; }
         public string Value { get; }
 
-        public Object(string partitionId, int objectId, string value)
+        public Object(string partitionId, string objectId, string value)
         {
             PartitionId = partitionId;
             ObjectId = objectId;
