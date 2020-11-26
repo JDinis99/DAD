@@ -21,12 +21,6 @@ namespace GigaStore
             }
 
             /* validate arguments */
-            if (!Int32.TryParse(args[0], out int serverId) || serverId < 0)
-            {
-                Console.WriteLine("'serverId' must be a positive value of type Int32.");
-                return;
-            }
-            // TODO validate url
             if (!Int32.TryParse(args[2], out int minDelay) || minDelay < 0)
             {
                 Console.WriteLine("'minDelay' must be a positive value of type Int32.");

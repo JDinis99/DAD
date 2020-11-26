@@ -1,0 +1,18 @@
+Server s1 https://localhost:5001 0 0
+Server s2 https://localhost:5002 0 0
+Server s3 https://localhost:5003 0 0	
+Server s4 https://localhost:5004 0 0	
+Server s5 https://localhost:5005 0 0	
+Wait 4000
+ReplicationFactor 3
+Partition 3 p1 s1 s2 s3
+Partition 3 p2 s2 s4 s5
+Wait 1000
+Client c1 http://localhost:3001 client_script1
+Status
+Wait 10000
+Crash 1
+Client c2 http://localhost:3002 client_script2
+Client c3 http://localhost:3003 client_script3
+Wait 2000
+Status
