@@ -216,13 +216,14 @@ namespace GigaClient
                     var listServerRequest = new ListServerRequest();
                     var listServerReply = await frontend.ListServerAsync(listServerRequest, serverId);
 
-                    // TODO write message for empty results
-                    foreach (var obj in listServerReply.Objects)
-                    {
-                        string inMaster = obj.InMaster ? "Yes" : "No";
-                        Console.WriteLine($"  PartitionId: {obj.PartitionId}, ObjectId: {obj.ObjectId}, Value: {obj.Value}, Master: {inMaster}");
+                    if (listServerReply.Objects.Count == 0)
+                        Console.WriteLine("  Empty");
+                    else {
+                        foreach (var obj in listServerReply.Objects) {
+                            string inMaster = obj.InMaster ? "Yes" : "No";
+                            Console.WriteLine($"  PartitionId: {obj.PartitionId}, ObjectId: {obj.ObjectId}, Value: {obj.Value}, Master: {inMaster}");
+                        }
                     }
-
                 }
                 else if (String.Equals(words[0], "listGlobal") && words.Length == 1)
                 {
@@ -235,9 +236,12 @@ namespace GigaClient
                         var reply = keyValuePair.Value;
 
                         Console.WriteLine($"[SERVER {serverId}]");
-                        foreach (var obj in reply.Objects)
-                        {
-                            Console.WriteLine($"  PartitionId: {obj.PartitionId}, ObjectId: {obj.ObjectId}, Value: {obj.Value}");
+                        if (reply.Objects.Count == 0)
+                            Console.WriteLine("  Empty");
+                        else {
+                            foreach (var obj in reply.Objects) {
+                                Console.WriteLine($"  PartitionId: {obj.PartitionId}, ObjectId: {obj.ObjectId}, Value: {obj.Value}");
+                            }
                         }
                     }
 

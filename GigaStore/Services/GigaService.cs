@@ -24,10 +24,28 @@ namespace GigaStore.Services
 
         public override Task<ReadReply> Read(ReadRequest request, ServerCallContext context)
         {
-            var value = _gigaStorage.Read(request.PartitionId, request.ObjectId);
+            var partitionId = request.PartitionId;
+            var value = _gigaStorage.Read(partitionId, request.ObjectId);
+
+            var masterId = _gigaStorage.GetMaster(partitionId);
+            var currentServerId = _gigaStorage.ServerId;
+
+            // Debug
+            if (currentServerId != masterId && value != "N/A")
+                Console.WriteLine($"This server (id: {currentServerId}) is not the master server for partition {partitionId}, but it replicates that partition (object value: {value}).");
+            else if (currentServerId != masterId && value == "N/A")
+                Console.WriteLine($"This server (id: {currentServerId}) is not the master server for partition {partitionId} and it does not replicate that partition.");
+            else if (currentServerId == masterId)
+                Console.WriteLine($"This server (id: {currentServerId}) is the master server for partition {partitionId} (object value: {value}).");
+            else
+                // This should never happen
+                Console.WriteLine("[READ] WTF Just Happened?!"); 
+
+
             return Task.FromResult(new ReadReply
             {
-                Value = value
+                Value = value,
+                MasterId = masterId
             });
         }
 
@@ -85,10 +103,27 @@ namespace GigaStore.Services
 
         public override Task<ReadReply> ReadAdvanced(ReadRequest request, ServerCallContext context)
         {
-            var value = _gigaStorage.ReadAdvanced(request.PartitionId, request.ObjectId);
-            return Task.FromResult(new ReadReply
-            {
-                Value = value
+            var partitionId = request.PartitionId;
+            var value = _gigaStorage.ReadAdvanced(partitionId, request.ObjectId);
+
+            var masterId = _gigaStorage.GetMaster(partitionId);
+            var currentServerId = _gigaStorage.ServerId;
+
+            // Debug
+            if (currentServerId != masterId && value != "N/A")
+                Console.WriteLine($"This server (id: {currentServerId}) is not the master server for partition {partitionId}, but it replicates that partition (object value: {value}).");
+            else if (currentServerId != masterId && value == "N/A")
+                Console.WriteLine($"This server (id: {currentServerId}) is not the master server for partition {partitionId} and it does not replicate that partition.");
+            else if (currentServerId == masterId)
+                Console.WriteLine($"This server (id: {currentServerId}) is the master server for partition {partitionId} (object value: {value}).");
+            else
+                // This should never happen
+                Console.WriteLine("[READ] WTF Just Happened?!");
+
+
+            return Task.FromResult(new ReadReply {
+                Value = value,
+                MasterId = masterId
             });
         }
 

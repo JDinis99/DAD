@@ -23,6 +23,7 @@ message ReadRequest {
 
 message ReadReply {
 	string value = 1;
+	string master_id = 2;
 }
 
 message WriteRequest {

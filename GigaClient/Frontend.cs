@@ -37,7 +37,7 @@ namespace GigaClient
 
         private void EstablishChannel(string serverId)
         {
-            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.ForegroundColor = ConsoleColor.DarkGray;
 
             if (serverId != this.ServerId)
             {
@@ -83,6 +83,20 @@ namespace GigaClient
                     };
                     reply = await ReadAsync(readRequest); // recursion
                 }
+                else if (String.Equals(reply.Value, "N/A") && request.ServerId == "-1" && reply.MasterId != this.ServerId && reply.MasterId != "") 
+                {
+                    // if reply.Value == "N/A" then ask master, because the master of a partition always contains that partition
+                    // if the partition master doesnt contain the request object, its because it doesnt exist
+                    Console.WriteLine($"Establish a channel with the master server (id: {reply.MasterId}) of partition {request.PartitionId}.");
+                    EstablishChannel(reply.MasterId);
+
+                    var readRequest = new ReadRequest {
+                        PartitionId = request.PartitionId,
+                        ObjectId = request.ObjectId,
+                        ServerId = "-1"
+                    };
+                    reply = await ReadAsync(readRequest); // recursion
+                }
             }
             catch (RpcException e)
             {
@@ -100,6 +114,18 @@ namespace GigaClient
                         ServerId = "-1"
                     };
                     reply = await ReadAsync(readRequest); // recursion
+                }
+                else if (request.ServerId == "-1")
+                {
+                    var getMasterRequest = new GetMasterRequest { PartitionId = request.PartitionId };
+                    var getMasterReply = await GetMasterAsync(getMasterRequest);
+                    var masterId = getMasterReply.MasterId;
+                    // if the current server is not the master
+                    if (masterId != this.ServerId && masterId != "") {
+                        Console.WriteLine($"Establish a channel with the master server (id: {masterId}) of partition {request.PartitionId}.");
+                        EstablishChannel(masterId);
+                    }
+                    reply = await ReadAsync(request); // recursion
                 }
             }
 
