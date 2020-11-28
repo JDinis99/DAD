@@ -7,11 +7,4 @@ Wait 4000
 ReplicationFactor 3
 Partition 3 p1 s1 s2 s3
 Partition 3 p2 s2 s4 s5
-Client c1 http://localhost:3001 client_script1
-Status
-Wait 10000
-Crash 1
-Client c2 http://localhost:3002 client_script2
-Client c3 http://localhost:3003 client_script3
-Wait 2000
-Status
+Client c1 http://localhost:3001 client_script5

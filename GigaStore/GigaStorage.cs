@@ -69,7 +69,7 @@ namespace GigaStore
             _down = new Dictionary<string, bool>();
             _servers = new Dictionary<string, List<string>>();
 
-            for (int i = 0; i < ServersCount; i++)
+            for (int i = 0; i < servers.Count; i++)
             {
                 if (servers[i] != ServerId)
                 {
