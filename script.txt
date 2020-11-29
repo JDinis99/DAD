@@ -1,13 +1,9 @@
+ReplicationFactor 3
+Partition 3 1 1 2 3
+Partition 3 2 2 3 4
 Server 1 https://localhost:5001 0 10
 Server 2 https://localhost:5002 0 10
 Server 3 https://localhost:5003 0 10
 Server 4 https://localhost:5004 0 10
 Server 5 https://localhost:5005 0 10
-Wait 1000
-ReplicationFactor 3
-Wait 5000
-Partition 3 1 1 2 3
-Wait 5000
-Partition 3 2 2 3 4
-Wait 5000
 Client user1 https://localhost:8001 client_script4

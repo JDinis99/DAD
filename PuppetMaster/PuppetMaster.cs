@@ -20,7 +20,9 @@ namespace PuppetMaster
 {
     public partial class PuppetMaster : Form
     {
-        private int _no_servers = 5;
+        private int _no_of_servers = 5; // if servers are manually added, change this
+        private Boolean _script = false;
+        private int _no_of_servers_from_script = 0; // if script is ran on puppet master, this number will be used
         private int _delay = 1000; //delay to stabilize servers on init
         private Boolean _isAdvanced = true;
         private Boolean _initedServers = false;
@@ -91,7 +93,8 @@ namespace PuppetMaster
                 WriteToLogger(Environment.NewLine);
                 Process newServer = new Process();
                 newServer.StartInfo.FileName = ".\\..\\..\\..\\..\\GigaStore\\bin\\Debug\\netcoreapp3.1\\GigaStore.exe";
-                newServer.StartInfo.Arguments = server_id + " " + server_url + " " + min_delay + " " + max_delay + " " + _no_servers + " " + _isAdvanced;
+                int server_count = _script ? _no_of_servers_from_script : _no_of_servers;
+                newServer.StartInfo.Arguments = server_id + " " + server_url + " " + min_delay + " " + max_delay + " " + server_count + " " + _isAdvanced;
                 newServer.Start();
                 lock (this)
                 {
@@ -158,7 +161,8 @@ namespace PuppetMaster
                 }
                 Process newClient = new Process();
                 newClient.StartInfo.FileName = ".\\..\\..\\..\\..\\GigaClient\\bin\\Debug\\netcoreapp3.1\\GigaClient.exe";
-                newClient.StartInfo.Arguments = _no_servers + " " + _isAdvanced + " \"" + servers + "\" " +  "..\\..\\..\\..\\GigaClient\\" + script_file;
+                int server_count = _script ? _no_of_servers_from_script : _no_of_servers;
+                newClient.StartInfo.Arguments = server_count + " " + _isAdvanced + " \"" + servers + "\" " + "..\\..\\..\\..\\GigaClient\\" + script_file;
                 newClient.Start();
                 lock (this)
                 {
@@ -389,15 +393,35 @@ namespace PuppetMaster
         private void RunScript(String filename)
         {
             WriteToLogger("Executing script " + filename + Environment.NewLine);
-            StreamReader script = File.OpenText(filename);
+            String newScript = ""; // newScript with server commands first
+            String serverCommands = "";
 
+            StreamReader script = File.OpenText(filename);
             String line = script.ReadLine();
+
             while (line != null)
             {
-                RunCommand(line);
+                if (line.Split(" ")[0].Equals("Server"))
+                {
+                    serverCommands += line + "\n";
+                    _no_of_servers_from_script++;
+                }
+                else
+                {
+                    newScript += line + "\n";
+                }
                 line = script.ReadLine();
             }
             script.Close();
+
+            newScript = serverCommands + newScript;
+            
+            foreach (String command in newScript.Split("\n"))
+            {
+                if (!String.IsNullOrEmpty(command))
+                WriteToLogger(command);
+                RunCommand(command);
+            }
         }
 
         private void RunCommand(String command)
