@@ -65,7 +65,6 @@ namespace GigaStore
                     giga.MinDelay = minDelay;
                     giga.MaxDelay = maxDelay;
                     giga.ServerId = serverId;
-                    giga.ServersCount = serversCount;
                     giga.IsAdvanced = isAdvanced;
 
                     webBuilder.UseStartup<Startup>();

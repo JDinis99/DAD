@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace GigaStore.Services
@@ -24,6 +25,7 @@ namespace GigaStore.Services
 
         public override Task<ReadReply> Read(ReadRequest request, ServerCallContext context)
         {
+            WaitUnfreeze();
             var partitionId = request.PartitionId;
             var value = _gigaStorage.Read(partitionId, request.ObjectId);
 
@@ -51,6 +53,7 @@ namespace GigaStore.Services
 
         public override Task<WriteReply> Write(WriteRequest request, ServerCallContext context)
         {
+            WaitUnfreeze();
             var partitionId = request.PartitionId;
 
             var masterId = _gigaStorage.GetMaster(partitionId);
@@ -103,6 +106,7 @@ namespace GigaStore.Services
 
         public override Task<ReadReply> ReadAdvanced(ReadRequest request, ServerCallContext context)
         {
+            WaitUnfreeze();
             var partitionId = request.PartitionId;
             var value = _gigaStorage.ReadAdvanced(partitionId, request.ObjectId);
 
@@ -129,6 +133,7 @@ namespace GigaStore.Services
 
         public override Task<WriteReply> WriteAdvanced(WriteRequest request, ServerCallContext context)
         {
+            WaitUnfreeze();
             var partitionId = request.PartitionId;
 
             var masterId = _gigaStorage.GetMaster(partitionId);
@@ -203,6 +208,13 @@ namespace GigaStore.Services
             {
                 MasterId = masterId
             });
+        }
+
+        public void WaitUnfreeze()
+        {
+            Semaphore sem = _gigaStorage.GetFrozenSemaphore();
+            sem.WaitOne();
+            sem.Release();
         }
 
     }

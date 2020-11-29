@@ -41,7 +41,7 @@ namespace GigaStore.Services
 
         public override Task<StatusReply> Status(StatusRequest request, ServerCallContext context)
         {
-            WaitUnfreeze();
+            _gigaStorage.WaitUnfreeze();
             Console.WriteLine("Server up and running ");
             return Task.FromResult(new StatusReply { Ack = "Success" });
         }
@@ -91,11 +91,5 @@ namespace GigaStore.Services
             return Task.FromResult(new InitServerReply { Ack = "Success" });
         }
 
-        public void WaitUnfreeze()
-        {
-            Semaphore sem = _gigaStorage.GetFrozenSemaphore();
-            sem.WaitOne();
-            sem.Release();
-        }
     }
 }

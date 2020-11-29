@@ -3,8 +3,8 @@ Server s2 https://localhost:5002 0 0
 Server s3 https://localhost:5003 0 0	
 Server s4 https://localhost:5004 0 0	
 Server s5 https://localhost:5005 0 0	
+Server s6 https://localhost:5006 0 0	
 Wait 4000
 ReplicationFactor 3
 Partition 3 p1 s1 s2 s3
 Partition 3 p2 s2 s4 s5
-Client c1 http://localhost:3001 client_script5

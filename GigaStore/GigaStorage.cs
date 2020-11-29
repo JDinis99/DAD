@@ -6,6 +6,7 @@ using Grpc.Net.Client;
 using static GigaStore.Propagate;
 using System.Threading;
 using System.Diagnostics;
+using Grpc.Core;
 
 namespace GigaStore
 {
@@ -17,13 +18,13 @@ namespace GigaStore
         private MultiKeyDictionary<string, string, int> _objectVersion;
 
         public string ServerId { get; set; }
-        public int ServersCount { get; set; }
         public bool IsAdvanced { get; set; }
         public int MinDelay { get; set; }
         public int MaxDelay { get; set; }
 
         private Dictionary<string, GrpcChannel> _channels;
         private Dictionary<string, PropagateClient> _clients;
+        private Dictionary<string, Semaphore> _semPartitions;
 
         private AutoResetEvent[] _handles;
         private bool _inited = false;
@@ -38,6 +39,7 @@ namespace GigaStore
         // Lists servers current server talks with. First entry for partition and second for servers that sahre said partition
         private Dictionary<string, List<string>> _servers;
 
+        private const int DEADLINE_GRPC = 30;
 
         private GigaStorage()
         {
@@ -64,6 +66,7 @@ namespace GigaStore
             // Set up lists
             _gigaObjects = new MultiKeyDictionary<string, string, string>();
             _semObjects = new MultiKeyDictionary<string, string, Semaphore>();
+            _semPartitions = new Dictionary<string, Semaphore>();
             _channels = new Dictionary<string, GrpcChannel>();
             _clients = new Dictionary<string, PropagateClient>();
             _master = new Dictionary<string, string>();
@@ -99,6 +102,7 @@ namespace GigaStore
 
             Console.WriteLine("New Partition: " + partition + " master: " + master);
             _master.Add(partition, master);
+            _semPartitions.Add(partition, new Semaphore(1, 1));
             List<String> tmp = new List<string>();
             foreach(String server in servers)
             {
@@ -316,7 +320,6 @@ namespace GigaStore
         // Advanced Version Write
         public void WriteAdvanced(string partition, string object_id, string value)
         {
-            PropagateRequest propagateRequest;
             string server;
 
             _gigaObjects.Add(partition, object_id, value);
@@ -324,23 +327,30 @@ namespace GigaStore
             int currentVersion = getVersion(partition, object_id);
             _objectVersion.Add(partition, object_id, currentVersion + 1);
 
+            PropagateRequest propagateRequest = new PropagateRequest { PartitionId = partition, ObjectId = object_id, Value = value, Version = currentVersion+1};
             // Propagate to all servers without waiting for response
             for (int i = 0; i < _servers[partition].Count; i++)
             {
-                propagateRequest = new PropagateRequest { PartitionId = partition, ObjectId = object_id, Value = value, Version = currentVersion+1};
                 server = _servers[partition][i];
+                string s = server;
                 Console.WriteLine("ServerID: " + server);
-                try
-                {
-                    _clients[server].PropagateServersAdvanced(propagateRequest);
-                }
-                catch
-                {
-                    // If fails then the server is down
-                    DeadServerReport(server);
-                }
+                new Thread(() => ThreadWriteAdvanced(s, propagateRequest)).Start();
             }
             Console.WriteLine("Value Propagated");
+        }
+
+        public void ThreadWriteAdvanced(String server, PropagateRequest request)
+        {
+           Console.WriteLine("ServerID THREAD: " + server);
+            try
+            {
+                _clients[server].PropagateServersAdvanced(request);
+            }
+            catch
+            {
+                // If fails then the server is down
+                DeadServerReport(server);
+            }
         }
 
         // Advanced Version Read
@@ -377,12 +387,15 @@ namespace GigaStore
         // Stores value without blocking a semaphore
         public void StoreAdvanced(string partition_id, string object_id, string value, int version)
         {
+            Console.WriteLine(partition_id + object_id + value + version);
+            _semPartitions[partition_id].WaitOne();
             int currentVersion = getVersion(partition_id, object_id);
             if (version > currentVersion)
             {
                 _gigaObjects.Add(partition_id, object_id, value);
                 _objectVersion.Add(partition_id, object_id, version);
             }
+            _semPartitions[partition_id].Release();
         }
 
         /*
@@ -450,14 +463,22 @@ namespace GigaStore
                 Console.WriteLine("changing master from: " + down_server + " to " + new_server);
 
                 ChangeRequest changeRequest = new ChangeRequest { ServerId = down_server, PartitionId = partition};
-                await _clients[new_server].ChangeMasterAsync(changeRequest);
+                await _clients[new_server].ChangeMasterAsync(changeRequest, new CallOptions().WithDeadline(DateTime.UtcNow.AddSeconds(DEADLINE_GRPC)) );
             }
-            catch
+            catch (RpcException e)
             {
+                if (e.StatusCode == StatusCode.DeadlineExceeded)
+                {
+                    // Dont report as dead
+                }
+                else
+                {
+                    // If it failed, the new server is also down
+                    DeadServerReport(new_server);
+                }
                 // Keep trying until it works with another server
                 ChangeMasterRequest(down_server, partition, iteration + 1);
-                // If it failed, the new server is also down
-                DeadServerReport(new_server);
+                
                 return;
             }
 
@@ -481,11 +502,18 @@ namespace GigaStore
         // Notifies server_id that down_server_id is down and that the new master of the partions of down_server_id is new_server
         public void ChangeMasterNotificationRequest (string server, string down_server, string new_server, string partition)
         {
+            Console.WriteLine("Notifying server: " + server + " about down server " + down_server + " with new " + new_server + " for partition " + partition);
+            ChangeNotificationRequest changeNotificationRequest = new ChangeNotificationRequest { ServerId = down_server, NewServerId = new_server, PartitionId = partition };
+            string s = server;
+            new Thread(() => ThreadNotification(s, changeNotificationRequest)).Start();
+
+        }
+
+        public void ThreadNotification (string server, ChangeNotificationRequest request)
+        {
             try
             {
-                Console.WriteLine("Notifying server: " + server + " about down server " + down_server + " with new " + new_server + " for partition " + partition);
-                ChangeNotificationRequest changeNotificationRequest = new ChangeNotificationRequest { ServerId = down_server, NewServerId = new_server, PartitionId = partition };
-                _clients[server].ChangeMasterNotificationAsync(changeNotificationRequest);
+                _clients[server].ChangeMasterNotificationAsync(request);
             }
             catch
             {
@@ -740,6 +768,12 @@ namespace GigaStore
                 // Ignore, first version
             }
             return currentVersion;
+        }
+
+        public void WaitUnfreeze()
+        {
+            _frozen.WaitOne();
+            _frozen.Release();
         }
 
     }
