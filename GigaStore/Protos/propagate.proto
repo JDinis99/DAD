@@ -22,6 +22,7 @@ message PropagateRequest {
 	string partition_id = 1;
 	string object_id = 2;
 	string value = 3;
+	int32 version = 4;
 }
 
 message PropagateReply {
@@ -59,6 +60,7 @@ message ReplicateRequest {
 	string partition_id = 1;
 	string object_id = 2;
 	string value = 3;
+	int32 version = 4;
 }
 
 message CheckServersRequest {

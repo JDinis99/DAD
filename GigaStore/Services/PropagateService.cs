@@ -23,7 +23,7 @@ namespace GigaStore.Services
         {
             Console.WriteLine("Propagated to Server: " + _gigaStorage.ServerId);
 
-            _gigaStorage.Store(request.PartitionId, request.ObjectId, request.Value);
+            _gigaStorage.Store(request.PartitionId, request.ObjectId, request.Value, request.Version);
             return Task.FromResult(new PropagateReply
             {
                 // Empty message as ack
@@ -44,7 +44,7 @@ namespace GigaStore.Services
         {
             Console.WriteLine("Propagated Advanced to Server: " + _gigaStorage.ServerId);
 
-            _gigaStorage.StoreAdvanced(request.PartitionId, request.ObjectId, request.Value);
+            _gigaStorage.StoreAdvanced(request.PartitionId, request.ObjectId, request.Value, request.Version);
             return Task.FromResult(new PropagateReply
             {
                 // Empty message as ack
@@ -81,7 +81,7 @@ namespace GigaStore.Services
             {
                 var replicateRequest = requestStream.Current;
                 Console.WriteLine("Stroring Partition: " + replicateRequest.PartitionId + " Obejct " + replicateRequest.ObjectId + " Value " + replicateRequest.Value);
-                _gigaStorage.StoreAdvanced(replicateRequest.PartitionId, replicateRequest.ObjectId, replicateRequest.Value);
+                _gigaStorage.StoreAdvanced(replicateRequest.PartitionId, replicateRequest.ObjectId, replicateRequest.Value, replicateRequest.Version);
             }
             return await Task.FromResult(new ReplicateReply
             {

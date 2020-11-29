@@ -14,6 +14,7 @@ namespace GigaStore
         private static readonly GigaStorage _instance = new GigaStorage();
         private MultiKeyDictionary<string, string, string> _gigaObjects;
         private MultiKeyDictionary<string, string, Semaphore> _semObjects;
+        private MultiKeyDictionary<string, string, int> _objectVersion;
 
         public string ServerId { get; set; }
         public int ServersCount { get; set; }
@@ -68,6 +69,7 @@ namespace GigaStore
             _master = new Dictionary<string, string>();
             _down = new Dictionary<string, bool>();
             _servers = new Dictionary<string, List<string>>();
+            _objectVersion = new MultiKeyDictionary<string, string, int>();
 
             for (int i = 0; i < servers.Count; i++)
             {
@@ -149,13 +151,17 @@ namespace GigaStore
                 Console.WriteLine("Done lock handles");
             }
 
+            // Get previous version of object
+            int currentVersion = getVersion(partition_id, object_id);
+
             // Stores the value and a semaphore for this object
             _gigaObjects.Add(partition_id, object_id, value);
             _semObjects.Add(partition_id, object_id, new Semaphore(1, 1));
+            _objectVersion.Add(partition_id, object_id, currentVersion + 1);
 
 
             // Stores the value on all servers that share this partition
-            propagateRequest = new PropagateRequest { PartitionId = partition_id, ObjectId = object_id, Value = value };
+            propagateRequest = new PropagateRequest { PartitionId = partition_id, ObjectId = object_id, Value = value, Version = currentVersion+1};
             _handles = new AutoResetEvent[_servers[partition_id].Count];
             threads = new Thread[_servers[partition_id].Count];
 
@@ -241,10 +247,15 @@ namespace GigaStore
         }
 
         // Stores an object from propagation and releases the lock
-        public void Store(string partition, string object_id, string value)
+        public void Store(string partition, string object_id, string value, int version)
         {
-            _gigaObjects.Add(partition, object_id, value);
-            _semObjects[partition][object_id].Release();
+            int currentVersion = getVersion(partition, object_id);
+            if (version > currentVersion)
+            {
+                _gigaObjects.Add(partition, object_id, value);
+                _semObjects[partition][object_id].Release();
+            }
+            _objectVersion[partition][object_id] = version;
 
             Console.WriteLine("UNLOCKED partition: " + partition+ " object: " + object_id);
         }
@@ -310,10 +321,13 @@ namespace GigaStore
 
             _gigaObjects.Add(partition, object_id, value);
 
+            int currentVersion = getVersion(partition, object_id);
+            _objectVersion.Add(partition, object_id, currentVersion + 1);
+
             // Propagate to all servers without waiting for response
             for (int i = 0; i < _servers[partition].Count; i++)
             {
-                propagateRequest = new PropagateRequest { PartitionId = partition, ObjectId = object_id, Value = value };
+                propagateRequest = new PropagateRequest { PartitionId = partition, ObjectId = object_id, Value = value, Version = currentVersion+1};
                 server = _servers[partition][i];
                 Console.WriteLine("ServerID: " + server);
                 try
@@ -361,9 +375,14 @@ namespace GigaStore
         }
 
         // Stores value without blocking a semaphore
-        public void StoreAdvanced(string partition_id, string object_id, string value)
+        public void StoreAdvanced(string partition_id, string object_id, string value, int version)
         {
-            _gigaObjects.Add(partition_id, object_id, value);
+            int currentVersion = getVersion(partition_id, object_id);
+            if (version > currentVersion)
+            {
+                _gigaObjects.Add(partition_id, object_id, value);
+                _objectVersion.Add(partition_id, object_id, version);
+            }
         }
 
         /*
@@ -551,7 +570,8 @@ namespace GigaStore
                                     {
                                         PartitionId = partitions.Key,
                                         ObjectId = entry.Key,
-                                        Value = entry.Value
+                                        Value = entry.Value,
+                                        Version = _objectVersion[partitions.Key][entry.Key]
                                     });
 
                                 }
@@ -706,6 +726,20 @@ namespace GigaStore
             Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine("DEBUG: " + message);
             Console.ResetColor();
+        }
+
+        public int getVersion (string partition_id, string object_id)
+        {
+            int currentVersion = 0;
+            try
+            {
+                currentVersion = _objectVersion[partition_id][object_id];
+            }
+            catch
+            {
+                // Ignore, first version
+            }
+            return currentVersion;
         }
 
     }
