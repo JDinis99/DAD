@@ -446,11 +446,8 @@ namespace PuppetMaster
                 case "Partition":
                     PartitionDelegate p_del = new PartitionDelegate(Partition);
                     var p_workTask = Task.Run(() => p_del.Invoke(args));
-                    // If the servers have not been inited given them time to stabilize (alowed by the professors)
-                    if (!_initedServers)
-                    {
-                        Thread.Sleep(_delay);
-                    }
+                    // Give the servers time to stabilize after a new partition, since it is given after the server has been initiated (alowed by the professors)
+                    Thread.Sleep(_delay);
                     break;
 
                 case "Client":
