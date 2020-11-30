@@ -133,6 +133,7 @@ namespace GigaStore.Services
 
         public override Task<WriteReply> WriteAdvanced(WriteRequest request, ServerCallContext context)
         {
+            int currentVersion = _gigaStorage.GetVersion(request.PartitionId, request.ObjectId);
             WaitUnfreeze();
             var partitionId = request.PartitionId;
 
@@ -145,7 +146,7 @@ namespace GigaStore.Services
                 });
             }
 
-            _gigaStorage.WriteAdvanced(request.PartitionId, request.ObjectId, request.Value);
+            _gigaStorage.WriteAdvanced(request.PartitionId, request.ObjectId, request.Value, currentVersion + 1);
 
             // The current server is already the master for this partition
             return Task.FromResult(new WriteReply {

@@ -156,7 +156,7 @@ namespace GigaStore
             }
 
             // Get previous version of object
-            int currentVersion = getVersion(partition_id, object_id);
+            int currentVersion = GetVersion(partition_id, object_id);
 
             // Stores the value and a semaphore for this object
             _gigaObjects.Add(partition_id, object_id, value);
@@ -253,7 +253,7 @@ namespace GigaStore
         // Stores an object from propagation and releases the lock
         public void Store(string partition, string object_id, string value, int version)
         {
-            int currentVersion = getVersion(partition, object_id);
+            int currentVersion = GetVersion(partition, object_id);
             if (version > currentVersion)
             {
                 _gigaObjects.Add(partition, object_id, value);
@@ -318,16 +318,15 @@ namespace GigaStore
          */
 
         // Advanced Version Write
-        public void WriteAdvanced(string partition, string object_id, string value)
+        public void WriteAdvanced(string partition, string object_id, string value, int version)
         {
             string server;
 
             _gigaObjects.Add(partition, object_id, value);
 
-            int currentVersion = getVersion(partition, object_id);
-            _objectVersion.Add(partition, object_id, currentVersion + 1);
+            _objectVersion.Add(partition, object_id, version);
 
-            PropagateRequest propagateRequest = new PropagateRequest { PartitionId = partition, ObjectId = object_id, Value = value, Version = currentVersion+1};
+            PropagateRequest propagateRequest = new PropagateRequest { PartitionId = partition, ObjectId = object_id, Value = value, Version = version};
             // Propagate to all servers without waiting for response
             for (int i = 0; i < _servers[partition].Count; i++)
             {
@@ -389,7 +388,7 @@ namespace GigaStore
         {
             Console.WriteLine(partition_id + object_id + value + version);
             _semPartitions[partition_id].WaitOne();
-            int currentVersion = getVersion(partition_id, object_id);
+            int currentVersion = GetVersion(partition_id, object_id);
             if (version > currentVersion)
             {
                 _gigaObjects.Add(partition_id, object_id, value);
@@ -756,7 +755,7 @@ namespace GigaStore
             Console.ResetColor();
         }
 
-        public int getVersion (string partition_id, string object_id)
+        public int GetVersion (string partition_id, string object_id)
         {
             int currentVersion = 0;
             try
