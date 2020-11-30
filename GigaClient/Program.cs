@@ -206,7 +206,10 @@ namespace GigaClient
                     };
 
                     var writeReply = await frontend.WriteAsync(writeRequest);
-                    Console.WriteLine("Write operation was sucessfull.");
+                    if (writeReply.MasterId != "")
+                        Console.WriteLine("Write operation was successful.");
+                    else
+                        Console.WriteLine("Write operation was unsuccessful.");
 
                 }
                 else if (String.Equals(words[0], "listServer") && words.Length == 2)
@@ -328,6 +331,10 @@ namespace GigaClient
             catch (IOException e)
             {
                 Console.WriteLine($"IOException: {e.Message}");
+            }
+            catch (KeyNotFoundException e) 
+            {
+                Console.WriteLine($"KeyNotFoundException: {e.Message}");
             }
 
         } // ExecInputAsync
