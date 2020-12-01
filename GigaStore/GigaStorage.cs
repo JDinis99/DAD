@@ -55,7 +55,6 @@ namespace GigaStore
         // Starts the GRPC clients with the other servers and sets up all axiliary lists
         public void Init (List<string> servers, List<string> urls)
         {
-            Console.WriteLine("INIT");
             // If it has already been initiated then ignore
             if (_inited)
             {
@@ -73,6 +72,8 @@ namespace GigaStore
             _down = new Dictionary<string, bool>();
             _servers = new Dictionary<string, List<string>>();
             _objectVersion = new MultiKeyDictionary<string, string, int>();
+
+            Console.WriteLine("INIT");
 
             for (int i = 0; i < servers.Count; i++)
             {
@@ -93,7 +94,6 @@ namespace GigaStore
             try
             {
                 _servers.Remove(partition);
-                Console.WriteLine("REMOVED Partition: " + partition + " master: " + master);
             }
             catch
             {
@@ -115,10 +115,9 @@ namespace GigaStore
             _servers.Add(partition, tmp);
         }
 
-        /*
-         * Base Version
-         * 
-         */
+        /* ====================================================================== */
+        /* ====[                        Base Version                        ]==== */
+        /* ====================================================================== */
 
         // Base version Write
         public void Write(string partition_id, string object_id, string value)
@@ -128,8 +127,6 @@ namespace GigaStore
             var lockRequest = new LockRequest { PartitionId = partition_id, ObjectId = object_id }; ;
             _handles = new AutoResetEvent[_servers[partition_id].Count];
             Thread[] threads = new Thread[_servers[partition_id].Count];
-
-            Console.WriteLine("Count " + _servers[partition_id].Count);
 
             for (int i = 0; i < _servers[partition_id].Count ; i++)
             {
@@ -143,16 +140,13 @@ namespace GigaStore
 
             for (int x = 0; x < threads.Length; x++)
             {
-                Console.WriteLine("Starting thread: " + x);
                 threads[x].Start();
             }
 
             if (threads.Length != 0)
             {
                 // Waits for all locks
-                Console.WriteLine("Awating lock handles");
                 WaitHandle.WaitAll(_handles);
-                Console.WriteLine("Done lock handles");
             }
 
             // Get previous version of object
@@ -179,30 +173,26 @@ namespace GigaStore
                 var propagateRequestTmp = propagateRequest;
 
                 threads[i] = new Thread(async () => await ThreadPropagateAsync(t, s, propagateRequestTmp));
-                Console.WriteLine("Value Propagated");
 
             }
 
             for (int x = 0; x < threads.Length; x++)
             {
-                Console.WriteLine("Starting thread: " + x);
                 threads[x].Start();
             }
 
             if (threads.Length != 0)
             {
                 // Waits for all propagations
-                Console.WriteLine("Awating propagate handles");
                 WaitHandle.WaitAll(_handles);
-                Console.WriteLine("Done propagate handles");
             }
+            Console.WriteLine("Value Propagated");
         }
 
 
         // Method to facilitate Lock Requests to other servers with threads
         public async Task ThreadLockAsync (int t, string server, LockRequest lockRequest)
         {
-            Console.WriteLine("thread: " + t);
             try
             {
                 await _clients[server].LockServersAsync(lockRequest);
@@ -233,8 +223,6 @@ namespace GigaStore
         // Locks an object
         public void Lock(string partition, string object_id)
         {
-            Console.WriteLine("LOCKING partition: " + partition + " object: " + object_id);
-
             try
             {
                 _semObjects[partition][object_id].WaitOne();
@@ -247,7 +235,6 @@ namespace GigaStore
 
 
             }
-            Console.WriteLine("LOCKED partition: " + partition+ " object: " + object_id);
         }
 
         // Stores an object from propagation and releases the lock
@@ -260,8 +247,6 @@ namespace GigaStore
                 _semObjects[partition][object_id].Release();
             }
             _objectVersion[partition][object_id] = version;
-
-            Console.WriteLine("UNLOCKED partition: " + partition+ " object: " + object_id);
         }
 
         // Base Version Read
@@ -271,10 +256,8 @@ namespace GigaStore
             try
             {
                 _semObjects[partition][objectId].WaitOne();
-                Console.WriteLine($"[READ] Locked (partition {partition}, object {objectId}).");
                 value = _gigaObjects[partition][objectId];
                 _semObjects[partition][objectId].Release();
-                Console.WriteLine($"[READ] Unlocked (partition {partition}, object {objectId}).");
             }
             catch (KeyNotFoundException)
             {
@@ -294,10 +277,8 @@ namespace GigaStore
                     try
                     {
                         _semObjects[partitionId][objectId].WaitOne();
-                        Console.WriteLine($"[LIST] Locked (partition {partitionId}, object {objectId}).");
                         var value = _gigaObjects[partitionId][objectId];
                         _semObjects[partitionId][objectId].Release();
-                        Console.WriteLine($"[LIST] Unlocked (partition {partitionId}, object {objectId}).");
 
                         var obj = new Object(partitionId, objectId, value);
                         objects.Add(obj);
@@ -312,10 +293,9 @@ namespace GigaStore
         }
 
 
-        /*
-         * Advanced Version
-         * 
-         */
+        /* ====================================================================== */
+        /* ====[                      Advanced Version                      ]==== */
+        /* ====================================================================== */
 
         // Advanced Version Write
         public void WriteAdvanced(string partition, string object_id, string value, int version)
@@ -340,7 +320,6 @@ namespace GigaStore
 
         public void ThreadWriteAdvanced(String server, PropagateRequest request)
         {
-           Console.WriteLine("ServerID THREAD: " + server);
             try
             {
                 _clients[server].PropagateServersAdvanced(request);
@@ -397,10 +376,9 @@ namespace GigaStore
             _semPartitions[partition_id].Release();
         }
 
-        /*
-         * Auxiliary
-         * 
-         */
+        /* ====================================================================== */
+        /* ====[                       Fault Tolerance                      ]==== */
+        /* ====================================================================== */
 
         // Starts all process related to finding out a server is down
         public void DeadServerReport(string down_server)
@@ -418,7 +396,7 @@ namespace GigaStore
                 if (master.Value == down_server)
                 {
                     isMaster = true;
-                    Console.WriteLine("DEAD Server: " + down_server + " Partition: " + master.Key);
+                    Console.WriteLine("Dead Server: " + down_server + " Partition: " + master.Key);
                     ChangeMasterRequest(down_server, master.Key, 0);
                 }
             }
@@ -588,7 +566,6 @@ namespace GigaStore
                             }
                             try
                             {
-                                // TODO Some sleep to ensure its there is something to write??
                                 Console.WriteLine("Asking server: " + server.Key + " to replicate partition: " + partitions.Key);
                                 var replicateRequest = _clients[server.Key].ReplicatePartition();
                                 foreach (KeyValuePair<string, string> entry in _gigaObjects[partitions.Key])
@@ -648,6 +625,11 @@ namespace GigaStore
             Console.WriteLine("Notified that server: " + new_server + " now belongs to partition: " + partition);
             _servers[partition].Add(new_server);
         }
+
+        /* ====================================================================== */
+        /* ====[                         Auxiliary                          ]==== */
+        /* ====================================================================== */
+
 
         // Gets Partition
         public Dictionary<string, string> GetPartition (string partition)
