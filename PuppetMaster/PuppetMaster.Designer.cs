@@ -77,6 +77,7 @@
             this.logger.Multiline = true;
             this.logger.Name = "logger";
             this.logger.ReadOnly = true;
+            this.logger.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.logger.Size = new System.Drawing.Size(609, 450);
             this.logger.TabIndex = 1;
             // 

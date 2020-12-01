@@ -32,6 +32,7 @@ namespace PuppetMaster
         private Dictionary<string, GrpcChannel> _clientChannels = new Dictionary<string, GrpcChannel>();
         private Dictionary<string, string> _clientUrls = new Dictionary<string, string>();
         private Dictionary<string, PuppetMasterClient.PuppetMasterClientClient> _puppetClientClients = new Dictionary<string, PuppetMasterClient.PuppetMasterClientClient>();
+        private Dictionary<string, Process> _clientProcesses = new Dictionary<string, Process>();
 
         public delegate void ReplicationFactorDelegate(String factor);
         public delegate void CreateServerDelegate(String[] args);
@@ -89,8 +90,7 @@ namespace PuppetMaster
 
             if (!_channels.ContainsKey(server_id))
             {
-                WriteToLogger("Creating new server with id " + server_id + " on URL " + server_url + " with delay between " + min_delay + "ms and " + max_delay + "ms...");
-                WriteToLogger(Environment.NewLine);
+                WriteToLogger("Creating new server with id " + server_id + " on URL " + server_url + " with delay between " + min_delay + "ms and " + max_delay + "ms..." + Environment.NewLine + Environment.NewLine);
                 Process newServer = new Process();
                 newServer.StartInfo.FileName = ".\\..\\..\\..\\..\\GigaStore\\bin\\Debug\\netcoreapp3.1\\GigaStore.exe";
                 int server_count = _script ? _no_of_servers_from_script : _no_of_servers;
@@ -101,8 +101,7 @@ namespace PuppetMaster
                     _serverUrls.Add(server_id, server_url);
                     _channels.Add(server_id, GrpcChannel.ForAddress(server_url));
                     _puppetServerClients.Add(server_id, new GigaStore.PuppetMaster.PuppetMasterClient(_channels[server_id]));
-                }
-                WriteToLogger(Environment.NewLine);
+                }  
             }
             else
             {
@@ -151,8 +150,7 @@ namespace PuppetMaster
 
             if (!_clientChannels.ContainsKey(username))
             {
-                WriteToLogger("Creating new client with username " + username + " on URL " + client_url + " to run script " + script_file + "...");
-                WriteToLogger(Environment.NewLine);
+                WriteToLogger("Creating new client with username " + username + " on URL " + client_url + " to run script " + script_file + "..." + Environment.NewLine + Environment.NewLine);
                 String servers = "";
                 Dictionary<string, string>.KeyCollection keys = _serverUrls.Keys;
                 foreach (String id in keys)
@@ -169,10 +167,9 @@ namespace PuppetMaster
                     _clientUrls.Add(username, client_url);
                     _clientChannels.Add(username, GrpcChannel.ForAddress(client_url));
                     _puppetClientClients.Add(username, new PuppetMasterClient.PuppetMasterClientClient(_clientChannels[username]));
+                    _clientProcesses.Add(username, newClient);
                 }
             }
-             
-            WriteToLogger(Environment.NewLine);
         }
 
         public void Status() {
@@ -199,7 +196,7 @@ namespace PuppetMaster
             }
 
             // Ask all clients to print their status
-            Dictionary<string, PuppetMasterClient.PuppetMasterClientClient>.KeyCollection clientKeys = _puppetClientClients.Keys;
+            /*Dictionary<string, PuppetMasterClient.PuppetMasterClientClient>.KeyCollection clientKeys = _puppetClientClients.Keys;
             foreach (string id in clientKeys)
             {
                 try
@@ -214,6 +211,15 @@ namespace PuppetMaster
                 catch (Exception)
                 {
                     WriteToLogger("Client with username " + id + " couldn't be reached.");
+                    WriteToLogger(Environment.NewLine);
+                }
+            }*/
+            Dictionary<string, Process>.KeyCollection clientKeys = _clientProcesses.Keys;
+            foreach (string id in clientKeys)
+            {
+                if (_clientProcesses[id].Responding)
+                {
+                    WriteToLogger("Client " + id + " is up and running.");
                     WriteToLogger(Environment.NewLine);
                 }
             }
@@ -419,8 +425,9 @@ namespace PuppetMaster
             foreach (String command in newScript.Split("\n"))
             {
                 if (!String.IsNullOrEmpty(command))
-                WriteToLogger(command);
-                RunCommand(command);
+                {
+                    RunCommand(command);
+                }
             }
         }
 

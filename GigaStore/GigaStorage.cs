@@ -753,6 +753,7 @@ namespace GigaStore
 
         public void WaitUnfreeze()
         {
+            Delay();
             _frozen.WaitOne();
             _frozen.Release();
         }

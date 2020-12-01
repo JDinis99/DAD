@@ -105,6 +105,7 @@ namespace GigaStore.Services
 
         public void WaitUnfreeze()
         {
+            _gigaStorage.Delay();
             Semaphore sem = _gigaStorage.GetFrozenSemaphore();
             sem.WaitOne();
             sem.Release();

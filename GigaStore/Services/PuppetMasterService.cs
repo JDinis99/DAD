@@ -41,7 +41,6 @@ namespace GigaStore.Services
 
         public override Task<StatusReply> Status(StatusRequest request, ServerCallContext context)
         {
-            _gigaStorage.WaitUnfreeze();
             Console.WriteLine("Server up and running ");
             return Task.FromResult(new StatusReply { Ack = "Success" });
         }
