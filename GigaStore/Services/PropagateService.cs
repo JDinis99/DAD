@@ -23,7 +23,6 @@ namespace GigaStore.Services
         public override  Task<PropagateReply> PropagateServers(PropagateRequest request, ServerCallContext context)
         {
             WaitUnfreeze();
-            Console.WriteLine("Propagated to Server: " + _gigaStorage.ServerId);
 
             _gigaStorage.Store(request.PartitionId, request.ObjectId, request.Value, request.Version);
             return Task.FromResult(new PropagateReply
@@ -45,7 +44,6 @@ namespace GigaStore.Services
 
         public override Task<PropagateReply> PropagateServersAdvanced(PropagateRequest request, ServerCallContext context)
         {
-            Console.WriteLine("Propagated Advanced to Server: " + _gigaStorage.ServerId);
             WaitUnfreeze();
 
             _gigaStorage.StoreAdvanced(request.PartitionId, request.ObjectId, request.Value, request.Version);
@@ -59,7 +57,6 @@ namespace GigaStore.Services
         public override async Task<ChangeReply> ChangeMaster(ChangeRequest request, ServerCallContext context)
         {
             WaitUnfreeze();
-            Console.WriteLine("Change Master from server: " + request.ServerId + " for partition " + request.PartitionId);
             await _gigaStorage.ChangeMasterAsync(request.ServerId, request.PartitionId);
             return await Task.FromResult(new ChangeReply
             {
@@ -71,7 +68,6 @@ namespace GigaStore.Services
         public override async Task<ChangeReply> ChangeMasterNotification(ChangeNotificationRequest request, ServerCallContext context)
         {
             WaitUnfreeze();
-            Console.WriteLine("Change Master Notification from server: " + request.ServerId + " to: " + request.NewServerId + " for partiton: " + request.PartitionId);
             await _gigaStorage.ChangeMasterNotificationAsync(request.ServerId, request.NewServerId, request.PartitionId);
             return await Task.FromResult(new ChangeReply
             {
