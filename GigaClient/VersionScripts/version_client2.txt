@@ -1,0 +1,4 @@
+begin-repeat 20
+write p1 o1 "p1-o1-v$i"
+end-repeat
+listGlobal

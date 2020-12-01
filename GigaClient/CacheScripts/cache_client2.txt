@@ -1,0 +1,4 @@
+anchor s1
+write p1 o1 "p1-o1-v2"
+wait 100
+listGlobal

@@ -1,0 +1,16 @@
+ReplicationFactor 3
+Partition p1 s1 s2 s3
+Server s1 https://localhost:5001 0 0
+Server s2 https://localhost:5002 0 0
+Server s3 https://localhost:5003 0 0
+Server s4 https://localhost:5004 0 0
+Server s5 https://localhost:5005 0 0
+Wait 1000
+Client c1 https://localhost:8001 VersionScripts/version_client1
+Wait 1000
+Freeze s2
+Wait 100
+Client c2 https://localhost:8002 VersionScripts/version_client2
+Unfreeze s2
+Wait 100
+Client c3 https://localhost:8003 VersionScripts/version_client3
