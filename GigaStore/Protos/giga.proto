@@ -24,6 +24,7 @@ message ReadRequest {
 message ReadReply {
 	string value = 1;
 	string master_id = 2;
+	int32 version = 3;
 }
 
 message WriteRequest {

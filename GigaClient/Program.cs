@@ -40,6 +40,8 @@ namespace GigaClient
             "Closes a repeat loop.\n" +
             "---------------------------------------";
 
+        /* key = (string partitionId, string objectId), value = (int version, string value) */
+        private static LRUCache<(string, string), (int, string)> _cache;
 
         /* ====================================================================== */
         /* ====[                            Main                            ]==== */
@@ -98,6 +100,9 @@ namespace GigaClient
                 filename = args[3];
             }
 
+            if (isAdvanced)
+                _cache = new LRUCache<(string, string), (int, string)>(1000); // FIXME : capacity ?
+
             /* create a connection to the gRPC service */
             Frontend frontend;
             try {
@@ -121,7 +126,7 @@ namespace GigaClient
                         fileline = reader.ReadLine();
                         Console.WriteLine($"> ${fileline}");
                         if (fileline != null && fileline != "")
-                            await ExecInputAsync(frontend, fileline, false, reader);
+                            await ExecInputAsync(frontend, fileline, isAdvanced, reader);
 
                     } while (fileline != null);
 
@@ -143,7 +148,7 @@ namespace GigaClient
                 Console.Write("> ");
                 line = Console.ReadLine();
                 if (line != null && line != "")
-                    await ExecInputAsync(frontend, line, false);
+                    await ExecInputAsync(frontend, line, isAdvanced);
 
             } while (true);
 
@@ -154,7 +159,7 @@ namespace GigaClient
         /* ====[                          Commands                          ]==== */
         /* ====================================================================== */
 
-        private static async Task ExecInputAsync(Frontend frontend, string line, bool repeat, StreamReader reader = null)
+        private static async Task ExecInputAsync(Frontend frontend, string line, bool isAdvanced, StreamReader reader = null, bool repeat = false)
         {
             try
             {
@@ -174,8 +179,26 @@ namespace GigaClient
                     };
 
                     var readReply = await frontend.ReadAsync(readRequest);
-                    Console.WriteLine(readReply.Value);
+                    
+                    if (!isAdvanced) 
+                    {
+                        var value = readReply.Value;
+                        Console.WriteLine(value);
+                    }
+                    else 
+                    {
+                        var replyVersion = readReply.Version;
+                        var replyValue = readReply.Value;
 
+                        var key = (partitionId, objectId);
+                        var (currentVersion, currentValue) = _cache.Get(key);
+                        if (replyVersion >= currentVersion)
+                            _cache.Add(key, (replyVersion, replyValue));
+
+                        var (version, value) = _cache.Get(key);
+                        Console.WriteLine(value);
+                    }
+                    
                 }
                 else if (String.Equals(words[0], "write") && words.Length > 3)
                 {
@@ -289,7 +312,7 @@ namespace GigaClient
                         foreach (var c in commands)
                         {
                             command = c.Replace("$i", i.ToString());
-                            await ExecInputAsync(frontend, command, true, reader);
+                            await ExecInputAsync(frontend, command, isAdvanced, reader, true);
                         }
                     }
 

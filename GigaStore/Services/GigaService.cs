@@ -39,10 +39,6 @@ namespace GigaStore.Services
                 Console.WriteLine($"This server (id: {currentServerId}) is not the master server for partition {partitionId} and it does not replicate that partition.");
             else if (currentServerId == masterId)
                 Console.WriteLine($"This server (id: {currentServerId}) is the master server for partition {partitionId} (object value: {value}).");
-            else
-                // This should never happen
-                Console.WriteLine("[READ] WTF Just Happened?!"); 
-
 
             return Task.FromResult(new ReadReply
             {
@@ -108,10 +104,12 @@ namespace GigaStore.Services
         {
             WaitUnfreeze();
             var partitionId = request.PartitionId;
-            var value = _gigaStorage.ReadAdvanced(partitionId, request.ObjectId);
+            var objectId = request.ObjectId;
+            var value = _gigaStorage.ReadAdvanced(partitionId, objectId);
 
             var masterId = _gigaStorage.GetMaster(partitionId);
             var currentServerId = _gigaStorage.ServerId;
+            var version = _gigaStorage.GetVersion(partitionId, objectId);
 
             // Debug
             if (currentServerId != masterId && value != "N/A")
@@ -120,14 +118,11 @@ namespace GigaStore.Services
                 Console.WriteLine($"This server (id: {currentServerId}) is not the master server for partition {partitionId} and it does not replicate that partition.");
             else if (currentServerId == masterId)
                 Console.WriteLine($"This server (id: {currentServerId}) is the master server for partition {partitionId} (object value: {value}).");
-            else
-                // This should never happen
-                Console.WriteLine("[READ] WTF Just Happened?!");
-
 
             return Task.FromResult(new ReadReply {
                 Value = value,
-                MasterId = masterId
+                MasterId = masterId,
+                Version = version
             });
         }
 
