@@ -35,7 +35,7 @@ namespace GigaClient
             EstablishChannel(serverId);
         }
 
-        private void EstablishChannel(string serverId)
+        public void EstablishChannel(string serverId)
         {
             Console.ForegroundColor = ConsoleColor.DarkGray;
 

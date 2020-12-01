@@ -40,7 +40,10 @@ namespace GigaClient
             "Closes a repeat loop.\n" +
             "\n" +
             "> exit\n" +
-            "Exit client." +
+            "Exit client.\n" +
+            "\n" +
+            "> anchor server_id\n" +
+            "Establish a channel with 'server_id'.\n" +
             "---------------------------------------";
 
         /* key = (string partitionId, string objectId), value = (int version, string value) */
@@ -342,6 +345,11 @@ namespace GigaClient
                 else if (String.Equals(words[0], "help") && words.Length == 1)
                 {
                     Console.WriteLine(HELP_STRING);
+                }
+                else if (String.Equals(words[0], "anchor") && words.Length == 2) 
+                {
+                    var serverId = words[1];
+                    frontend.EstablishChannel(serverId);
                 }
                 else
                 {
