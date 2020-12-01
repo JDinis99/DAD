@@ -38,6 +38,9 @@ namespace GigaClient
             "\n" +
             "> end-repeat\n" +
             "Closes a repeat loop.\n" +
+            "\n" +
+            "> exit\n" +
+            "Exit client." +
             "---------------------------------------";
 
         /* key = (string partitionId, string objectId), value = (int version, string value) */
@@ -114,6 +117,7 @@ namespace GigaClient
             }
 
             /* read input from file */
+            var exit = false;
             if (filename != null)
             {
                 Console.WriteLine("Type a command ('help' for available commands).");
@@ -125,11 +129,17 @@ namespace GigaClient
                     {
                         fileline = reader.ReadLine();
                         Console.WriteLine($"> ${fileline}");
+                        if (String.Equals(fileline, "exit")) 
+                        {
+                            exit = true;
+                            break;
+                        }
+                            
                         if (fileline != null && fileline != "")
                             await ExecInputAsync(frontend, fileline, isAdvanced, reader);
 
                     } while (fileline != null);
-
+                    
                 } 
                 catch (IOException e)
                 {
@@ -141,16 +151,18 @@ namespace GigaClient
             Console.WriteLine(); // insert newline
 
             /* read input from command line */
-            Console.WriteLine("Type a command ('help' for available commands).");
-            string line;
-            do
-            {
-                Console.Write("> ");
-                line = Console.ReadLine();
-                if (line != null && line != "")
-                    await ExecInputAsync(frontend, line, isAdvanced);
+            if (!exit) {
+                Console.WriteLine("Type a command ('help' for available commands).");
+                string line;
+                do {
+                    Console.Write("> ");
+                    line = Console.ReadLine();
+                    if (String.Equals(line, "exit")) break;
+                    if (line != null && line != "")
+                        await ExecInputAsync(frontend, line, isAdvanced);
 
-            } while (true);
+                } while (true);
+            }
 
         } // Main
 
@@ -192,8 +204,10 @@ namespace GigaClient
 
                         var key = (partitionId, objectId);
                         var (currentVersion, currentValue) = _cache.Get(key);
-                        if (replyVersion >= currentVersion)
+                        if (replyVersion > currentVersion)
                             _cache.Add(key, (replyVersion, replyValue));
+                        else
+                            Console.WriteLine("Requested object returned an old version. Fetching from client cache...");
 
                         var (version, value) = _cache.Get(key);
                         Console.WriteLine(value);
