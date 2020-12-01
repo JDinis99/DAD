@@ -1,17 +1,17 @@
 ReplicationFactor 3
-Partition p1 s1 s2 s3
+Partition 3 p1 s1 s2 s3
 Server s1 https://localhost:5001 0 0
 Server s2 https://localhost:5002 0 0
 Server s3 https://localhost:5003 0 0
 Server s4 https://localhost:5004 0 0
 Server s5 https://localhost:5005 0 0
-Wait 1000
-Client c1 https://localhost:8001 FreezeScripts/freeze_client1
+Wait 5000
+Client c1 https://localhost:8001 FreezeScripts/freeze_client1.txt
 Wait 1000
 Freeze s2
 Wait 100
-Client c2 https://localhost:8002 FreezeScripts/freeze_client2
+Client c2 https://localhost:8002 FreezeScripts/freeze_client2.txt
 Wait 1000
 Unfreeze s2
 Wait 100
-Client c3 https://localhost:8003 FreezeScripts/freeze_client3
+Client c3 https://localhost:8003 FreezeScripts/freeze_client3.txt

@@ -1,19 +1,19 @@
 ReplicationFactor 3
-Partition p1 s1 s2 s3
-Partition p2 s2 s3 s4
+Partition 3 p1 s1 s2 s3
+Partition 3 p2 s2 s3 s4
 Server s1 https://localhost:5001 0 0
 Server s2 https://localhost:5002 0 0
 Server s3 https://localhost:5003 0 0
 Server s4 https://localhost:5004 0 0
 Server s5 https://localhost:5005 0 0
-Wait 1000
-Client c1 https://localhost:8001 CacheScripts/cache_client1
-Client c2 https://localhost:8002 CacheScripts/cache_client1
-Client c3 https://localhost:8003 CacheScripts/cache_client1
-Client c4 https://localhost:8004 CacheScripts/cache_client1
-Client c5 https://localhost:8005 CacheScripts/cache_client1
+Wait 5000
+Client c1 https://localhost:8001 CacheScripts/cache_client1.txt
+Client c2 https://localhost:8002 CacheScripts/cache_client1.txt
+Client c3 https://localhost:8003 CacheScripts/cache_client1.txt
+Client c4 https://localhost:8004 CacheScripts/cache_client1.txt
+Client c5 https://localhost:8005 CacheScripts/cache_client1.txt
 Wait 1000
 Freeze s2
-Client c6 https://localhost:8006 CacheScripts/cache_client2
+Client c6 https://localhost:8006 CacheScripts/cache_client2.txt
 Wait 8000
 Unfreeze s2

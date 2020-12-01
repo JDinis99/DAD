@@ -55,13 +55,11 @@ namespace PuppetMaster
             Boolean success = Int32.TryParse(factor, out int rep_factor);
             if (!success || rep_factor <= 0)
             {
-                WriteToLogger("Replication factor must be a positive integer greater than 0");
-                WriteToLogger(Environment.NewLine);
+                WriteToLogger("Replication factor must be a positive integer greater than 0" + Environment.NewLine);
                 return;
             }
 
-            WriteToLogger("Configuring system to replicate partitions on " + rep_factor + " servers...");
-            WriteToLogger(Environment.NewLine);
+            WriteToLogger("Configuring system to replicate partitions on " + rep_factor + " servers..." + Environment.NewLine);
             Dictionary<string, GigaStore.PuppetMaster.PuppetMasterClient>.KeyCollection keys = _puppetServerClients.Keys;
             foreach (string id in keys)
             {
@@ -76,15 +74,13 @@ namespace PuppetMaster
             Boolean success = Int32.TryParse(args[2], out int min_delay);
             if (!success || min_delay < 0)
             {
-                WriteToLogger("Min delay must be a positive integer.");
-                WriteToLogger(Environment.NewLine);
+                WriteToLogger("Min delay must be a positive integer." + Environment.NewLine);
                 return;
             }
             success = Int32.TryParse(args[3], out int max_delay);
             if (!success || max_delay < 0)
             {
-                WriteToLogger("Max delay must be a positive integer.");
-                WriteToLogger(Environment.NewLine);
+                WriteToLogger("Max delay must be a positive integer." + Environment.NewLine);
                 return;
             }
 
@@ -105,8 +101,7 @@ namespace PuppetMaster
             }
             else
             {
-                WriteToLogger("Server with id " + server_id + " already exists.");
-                WriteToLogger(Environment.NewLine);
+                WriteToLogger("Server with id " + server_id + " already exists." + Environment.NewLine);
             }
         }
 
@@ -115,26 +110,24 @@ namespace PuppetMaster
             Boolean success = Int32.TryParse(args[0], out int rep_factor);
             if (!success || rep_factor <= 0 || rep_factor != (args.Length - 2))
             {
-                WriteToLogger("Replication factor must be a positive integer greater than 0 and it must match the count of server ids given.");
-                WriteToLogger(Environment.NewLine);
+                WriteToLogger("Replication factor must be a positive integer greater than 0 and it must match the count of server ids given." + Environment.NewLine);
                 return;
             }
+            Thread.Sleep(_delay); //make sure all servers are added to the dictionaries so partition doesn't get skipped on being created properly from wrong checkups in next loop
             string partition_name = args[1];
             string list_servers = "";
             for (int i = 2; i < args.Length; i++)
             {
                 if (!_channels.ContainsKey(args[i]))
                 {
-                    WriteToLogger("Server with id " + args[i] + " doesn't exist. Partition not created.");
-                    WriteToLogger(Environment.NewLine);
+                    WriteToLogger("Server with id " + args[i] + " doesn't exist. Partition not created." + Environment.NewLine);
                     return;
                 }
                 list_servers += args[i] + " ";
             }
             // Make sure all servers are inited
             InitAllServers();
-            WriteToLogger("Storing " + rep_factor + " replicas of partition " + partition_name + " on servers " + list_servers + "...");
-            WriteToLogger(Environment.NewLine);
+            WriteToLogger("Storing " + rep_factor + " replicas of partition " + partition_name + " on servers " + list_servers + "..." + Environment.NewLine);
             Dictionary<string, GigaStore.PuppetMaster.PuppetMasterClient>.KeyCollection keys = _puppetServerClients.Keys;
             foreach (String id in keys)
             {
@@ -173,8 +166,7 @@ namespace PuppetMaster
         }
 
         public void Status() {
-            WriteToLogger("Asking nodes to print their statuses...");
-            WriteToLogger(Environment.NewLine);
+            WriteToLogger("Asking nodes to print their statuses..." + Environment.NewLine);
             // Ask all servers to print their status
             Dictionary<string, GigaStore.PuppetMaster.PuppetMasterClient>.KeyCollection keys = _puppetServerClients.Keys;
             foreach (string id in keys)
@@ -184,14 +176,12 @@ namespace PuppetMaster
                     var reply = _puppetServerClients[id].Status(new StatusRequest { });
                     if (reply.Ack.Equals("Success"))
                     {
-                        WriteToLogger("Server with id " + id + " is up and running.");
-                        WriteToLogger(Environment.NewLine);
+                        WriteToLogger("Server with id " + id + " is up and running." + Environment.NewLine);
                     }
                 }
                 catch (Exception)
                 {
-                    WriteToLogger("Server with id " + id + " couldn't be reached.");
-                    WriteToLogger(Environment.NewLine);
+                    WriteToLogger("Server with id " + id + " couldn't be reached." + Environment.NewLine);
                 }
             }
 
@@ -219,8 +209,7 @@ namespace PuppetMaster
             {
                 if (_clientProcesses[id].Responding)
                 {
-                    WriteToLogger("Client " + id + " is up and running.");
-                    WriteToLogger(Environment.NewLine);
+                    WriteToLogger("Client " + id + " is up and running." + Environment.NewLine);
                 }
             }
             WriteToLogger(Environment.NewLine);
@@ -231,13 +220,11 @@ namespace PuppetMaster
             try
             {
                 var reply = _puppetServerClients[serverId].FreezeServer(new FreezeRequest { });
-                WriteToLogger("Freezing server with id " + serverId + "...");
-                WriteToLogger(Environment.NewLine);
+                WriteToLogger("Freezing server with id " + serverId + "..." + Environment.NewLine);
             }
             catch (Exception)
             {
-                WriteToLogger("Server with id " + serverId + " couldn't be reached or does not exist.");
-                WriteToLogger(Environment.NewLine);
+                WriteToLogger("Server with id " + serverId + " couldn't be reached or does not exist." + Environment.NewLine);
             }
             WriteToLogger(Environment.NewLine);
         }
@@ -247,13 +234,11 @@ namespace PuppetMaster
             try
             {
                 var reply = _puppetServerClients[serverId].UnfreezeServer(new UnfreezeRequest { });
-                WriteToLogger("Unfreezing server with id " + serverId + "...");
-                WriteToLogger(Environment.NewLine);
+                WriteToLogger("Unfreezing server with id " + serverId + "..." + Environment.NewLine);
             }
             catch (Exception)
             {
-                WriteToLogger("Server with id " + serverId + " couldn't be reached or does not exist.");
-                WriteToLogger(Environment.NewLine);
+                WriteToLogger("Server with id " + serverId + " couldn't be reached or does not exist." + Environment.NewLine);
             }
             WriteToLogger(Environment.NewLine);
         }
@@ -267,8 +252,7 @@ namespace PuppetMaster
                 _puppetServerClients.Remove(serverId);
                 if (reply.Ack.Equals("Unsuccess"))
                 {
-                    WriteToLogger("Server with id " + serverId + " couldn't crash");
-                    WriteToLogger(Environment.NewLine);
+                    WriteToLogger("Server with id " + serverId + " couldn't crash" + Environment.NewLine);
                 }
             }
             catch (Exception)
@@ -276,8 +260,7 @@ namespace PuppetMaster
                 _serverUrls.Remove(serverId);
                 _channels.Remove(serverId);
                 _puppetServerClients.Remove(serverId);
-                WriteToLogger("Server with id " + serverId + " couldn't be reached - either it successfully crashed or it doesn't exist.");
-                WriteToLogger(Environment.NewLine);
+                WriteToLogger("Server with id " + serverId + " couldn't be reached - either it successfully crashed or it doesn't exist." + Environment.NewLine);
             }
             WriteToLogger(Environment.NewLine);
         }
