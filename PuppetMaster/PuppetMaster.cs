@@ -250,6 +250,8 @@ namespace PuppetMaster
                 var reply = _puppetServerClients[serverId].CrashServer(new CrashRequest { });
                 _channels.Remove(serverId);
                 _puppetServerClients.Remove(serverId);
+                _no_of_servers++;
+                _no_of_servers_from_script++;
                 if (reply.Ack.Equals("Unsuccess"))
                 {
                     WriteToLogger("Server with id " + serverId + " couldn't crash" + Environment.NewLine);
