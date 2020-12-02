@@ -24,7 +24,7 @@ namespace PuppetMaster
         private Boolean _script = false;
         private int _no_of_servers_from_script = 0; // if script is ran on puppet master, this number will be used
         private int _delay = 1000; //delay to stabilize servers on init
-        private Boolean _isAdvanced = false;
+        private Boolean _isAdvanced = true;
         private Boolean _initedServers = false;
         private Dictionary<string, GrpcChannel> _channels = new Dictionary<string, GrpcChannel>();
         private Dictionary<string, string> _serverUrls = new Dictionary<string, string>();
