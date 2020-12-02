@@ -10,13 +10,13 @@ Wait 5000
 Client c1 https://localhost:8001 ImmortalPartitionScripts/immortal_partition_client1.txt
 Wait 1000
 Crash s1
-Wait 100
+Wait 2000
 Client c2 https://localhost:8002 ImmortalPartitionScripts/immortal_partition_client2.txt
 Wait 1000
 Crash s2
-Wait 100
+Wait 2000
 Client c3 https://localhost:8003 ImmortalPartitionScripts/immortal_partition_client3.txt
 Wait 1000
 Crash s3
-Wait 100
+Wait 2000
 Client c4 https://localhost:8004 ImmortalPartitionScripts/immortal_partition_client4.txt
