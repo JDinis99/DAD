@@ -153,6 +153,7 @@ namespace PuppetMaster
                 Process newClient = new Process();
                 newClient.StartInfo.FileName = ".\\..\\..\\..\\..\\GigaClient\\bin\\Debug\\netcoreapp3.1\\GigaClient.exe";
                 int server_count = _script ? _no_of_servers_from_script : _no_of_servers;
+                WriteToLogger("Number of servers: " + server_count + ". Servers: " + servers);
                 newClient.StartInfo.Arguments = server_count + " " + _isAdvanced + " \"" + servers + "\" " + "..\\..\\..\\..\\GigaClient\\" + script_file;
                 newClient.Start();
                 lock (this)
@@ -247,11 +248,11 @@ namespace PuppetMaster
         {
             try
             {
-                var reply = _puppetServerClients[serverId].CrashServer(new CrashRequest { });
                 _channels.Remove(serverId);
                 _puppetServerClients.Remove(serverId);
-                _no_of_servers++;
-                _no_of_servers_from_script++;
+                _no_of_servers -= 1;
+                _no_of_servers_from_script -= 1;
+                var reply = _puppetServerClients[serverId].CrashServer(new CrashRequest { });
                 if (reply.Ack.Equals("Unsuccess"))
                 {
                     WriteToLogger("Server with id " + serverId + " couldn't crash" + Environment.NewLine);
@@ -383,6 +384,7 @@ namespace PuppetMaster
 
         private void RunScript(String filename)
         {
+            _script = true;
             WriteToLogger("Executing script " + filename + Environment.NewLine);
             String newScript = ""; // newScript with server commands first
             String serverCommands = "";
