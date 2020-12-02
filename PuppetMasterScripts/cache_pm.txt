@@ -12,7 +12,7 @@ Client c2 https://localhost:8002 CacheScripts/cache_client1.txt
 Client c3 https://localhost:8003 CacheScripts/cache_client1.txt
 Client c4 https://localhost:8004 CacheScripts/cache_client1.txt
 Client c5 https://localhost:8005 CacheScripts/cache_client1.txt
-Wait 1000
+Wait 3000
 Freeze s2
 Client c6 https://localhost:8006 CacheScripts/cache_client2.txt
 Wait 8000

@@ -1,4 +1,6 @@
-begin-repeat 20
+begin-repeat 10
 write p1 o1 "p1-o1-v$i"
 end-repeat
+
+wait 1000
 listGlobal

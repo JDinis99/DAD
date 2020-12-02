@@ -2,5 +2,5 @@ write p1 o1 "p1-o1-v1"
 anchor s2
 wait 100
 read p1 o1 s1
-Wait 5000
-read p1 o1 s1
+wait 5000
+read p1 o1 s2

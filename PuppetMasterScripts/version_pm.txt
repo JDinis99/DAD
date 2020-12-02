@@ -11,6 +11,7 @@ Wait 1000
 Freeze s2
 Wait 100
 Client c2 https://localhost:8002 VersionScripts/version_client2.txt
+Wait 3000
 Unfreeze s2
-Wait 100
+Wait 2000
 Client c3 https://localhost:8003 VersionScripts/version_client3.txt
