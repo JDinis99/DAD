@@ -13,5 +13,5 @@ Wait 1000
 Client c2 https://localhost:8002 FreezeScripts/freeze_client2.txt
 Wait 5000
 Unfreeze s2
-Wait 100
+Wait 1000
 Client c3 https://localhost:8003 FreezeScripts/freeze_client3.txt

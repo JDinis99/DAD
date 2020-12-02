@@ -366,14 +366,14 @@ namespace GigaStore
         public void StoreAdvanced(string partition_id, string object_id, string value, int version)
         {
             Console.WriteLine(partition_id + object_id + value + version);
-            _semPartitions[partition_id].WaitOne();
+            //_semPartitions[partition_id].WaitOne();
             int currentVersion = GetVersion(partition_id, object_id);
             if (version > currentVersion)
             {
                 _gigaObjects.Add(partition_id, object_id, value);
                 _objectVersion.Add(partition_id, object_id, version);
             }
-            _semPartitions[partition_id].Release();
+            //_semPartitions[partition_id].Release();
         }
 
         /* ====================================================================== */
