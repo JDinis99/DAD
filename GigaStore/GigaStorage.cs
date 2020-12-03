@@ -43,7 +43,16 @@ namespace GigaStore
 
         private GigaStorage()
         {
-            
+            // Set up lists
+            _gigaObjects = new MultiKeyDictionary<string, string, string>();
+            _semObjects = new MultiKeyDictionary<string, string, Semaphore>();
+            _semPartitions = new Dictionary<string, Semaphore>();
+            _channels = new Dictionary<string, GrpcChannel>();
+            _clients = new Dictionary<string, PropagateClient>();
+            _down = new Dictionary<string, bool>();
+            _servers = new Dictionary<string, List<string>>();
+            _objectVersion = new MultiKeyDictionary<string, string, int>();
+            _master = new Dictionary<string, string>();
         }
 
         // Singleton Design Patter "constructor"
@@ -61,17 +70,6 @@ namespace GigaStore
                 return;
             }
             _inited = true;
-
-            // Set up lists
-            _gigaObjects = new MultiKeyDictionary<string, string, string>();
-            _semObjects = new MultiKeyDictionary<string, string, Semaphore>();
-            _semPartitions = new Dictionary<string, Semaphore>();
-            _channels = new Dictionary<string, GrpcChannel>();
-            _clients = new Dictionary<string, PropagateClient>();
-            _master = new Dictionary<string, string>();
-            _down = new Dictionary<string, bool>();
-            _servers = new Dictionary<string, List<string>>();
-            _objectVersion = new MultiKeyDictionary<string, string, int>();
 
             Console.WriteLine("INIT");
 
@@ -99,7 +97,6 @@ namespace GigaStore
             {
                 // If not ignored
             }
-
             Console.WriteLine("New Partition: " + partition + " master: " + master);
             _master.Add(partition, master);
             _semPartitions.Add(partition, new Semaphore(1, 1));
@@ -208,6 +205,7 @@ namespace GigaStore
         // Method to facilitate Propagate Requests to other servers with threads
         public async Task ThreadPropagateAsync(int t, string server, PropagateRequest propagateRequest)
         {
+            Console.WriteLine("Propagated to: " + server);
             try
             {
                 await _clients[server].PropagateServersAsync(propagateRequest);
@@ -232,8 +230,6 @@ namespace GigaStore
                 // If there is no semaphore (in case of first write of this object) create one
                 _semObjects.Add(partition, object_id, new Semaphore(1,1));
                 _semObjects[partition][object_id].WaitOne();
-
-
             }
         }
 
@@ -246,7 +242,7 @@ namespace GigaStore
                 _gigaObjects.Add(partition, object_id, value);
                 _semObjects[partition][object_id].Release();
             }
-            _objectVersion[partition][object_id] = version;
+            _objectVersion.Add(partition,object_id, version);
         }
 
         // Base Version Read
@@ -546,7 +542,6 @@ namespace GigaStore
                 // Check for all partitions current server is master off
                 foreach (KeyValuePair<String, String> partitions in _master )
                 {
-                    Console.WriteLine("ANALYSING partition: " + partitions.Value);
                     if (partitions.Value != ServerId)
                     {
                         continue;
@@ -555,7 +550,6 @@ namespace GigaStore
                     
                     foreach(KeyValuePair<string, PropagateClient> server in _clients )
                     {
-                        Console.WriteLine("COUNT: " + _servers[partitions.Key].Count + " REPLICATION FACTOR - 1 " + (_replicationFactor - 1));
                         if (_servers[partitions.Key].Count < _replicationFactor - 1)
                         {
 
@@ -687,7 +681,6 @@ namespace GigaStore
 
         public void ChangeReplicationFactor(int factor)
         {
-            Console.WriteLine("CHANGING REPLICATION FACTOR TO: " + factor);
             _replicationFactor = factor;
         }
 

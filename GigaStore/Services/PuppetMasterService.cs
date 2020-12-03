@@ -23,7 +23,6 @@ namespace GigaStore.Services
 
         public override Task<ReplicationFactorReply> ReplicationFactor(ReplicationFactorRequest request, ServerCallContext context)
         {
-            Console.WriteLine("A MUDAR O REPLICATION PARA VALOR: " + request.Factor);
             _gigaStorage.ChangeReplicationFactor(request.Factor);
             return Task.FromResult(new ReplicationFactorReply { Ack = "Success" });
         }

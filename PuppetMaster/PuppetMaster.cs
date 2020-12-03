@@ -23,8 +23,8 @@ namespace PuppetMaster
         private int _no_of_servers = 5; // if servers are manually added, change this
         private Boolean _script = false;
         private int _no_of_servers_from_script = 0; // if script is ran on puppet master, this number will be used
-        private int _delay = 1000; //delay to stabilize servers on init
-        private Boolean _isAdvanced = false;
+        private int _delay = 1500; //delay to stabilize servers on init
+        private Boolean _isAdvanced = true;
         private Boolean _initedServers = false;
         private Dictionary<string, GrpcChannel> _channels = new Dictionary<string, GrpcChannel>();
         private Dictionary<string, string> _serverUrls = new Dictionary<string, string>();
@@ -431,9 +431,9 @@ namespace PuppetMaster
             {
                 case "ReplicationFactor":
                     // Give the servers time to stabilize after being created, since it is given after the server has been initiated (alowed by the professors)
-                    Thread.Sleep(_delay);
                     ReplicationFactorDelegate rf_del = new ReplicationFactorDelegate(ReplicationFactor);
                     var rf_workTask = Task.Run(() => rf_del.Invoke(args[0]));
+                    Thread.Sleep(_delay);
                     break;
 
                 case "Server":
@@ -507,6 +507,7 @@ namespace PuppetMaster
                     _puppetServerClients[id].InitServer(new InitServerRequest { Ids = ids.Trim(), Urls = urls.Trim() });
                 }
                 _initedServers = true;
+                Thread.Sleep(_delay); //guarantee the servers have been inited before the next request
             }
         }
     }
