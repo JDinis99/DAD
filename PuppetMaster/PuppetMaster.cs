@@ -52,6 +52,9 @@ namespace PuppetMaster
 
         public void ReplicationFactor(String factor)
         {
+            Thread.Sleep(_delay); //make sure all servers are added to the dictionaries so partition doesn't get skipped on being created properly from wrong checkups in next loop
+            // Make sure all servers are inited
+            InitAllServers();
             Boolean success = Int32.TryParse(factor, out int rep_factor);
             if (!success || rep_factor <= 0)
             {
@@ -113,7 +116,7 @@ namespace PuppetMaster
                 WriteToLogger("Replication factor must be a positive integer greater than 0 and it must match the count of server ids given." + Environment.NewLine);
                 return;
             }
-            Thread.Sleep(_delay); //make sure all servers are added to the dictionaries so partition doesn't get skipped on being created properly from wrong checkups in next loop
+           
             string partition_name = args[1];
             string list_servers = "";
             for (int i = 2; i < args.Length; i++)
@@ -125,8 +128,7 @@ namespace PuppetMaster
                 }
                 list_servers += args[i] + " ";
             }
-            // Make sure all servers are inited
-            InitAllServers();
+
             WriteToLogger("Storing " + rep_factor + " replicas of partition " + partition_name + " on servers " + list_servers + "..." + Environment.NewLine);
             Dictionary<string, GigaStore.PuppetMaster.PuppetMasterClient>.KeyCollection keys = _puppetServerClients.Keys;
             foreach (String id in keys)
@@ -428,6 +430,8 @@ namespace PuppetMaster
             switch (keyword)
             {
                 case "ReplicationFactor":
+                    // Give the servers time to stabilize after being created, since it is given after the server has been initiated (alowed by the professors)
+                    Thread.Sleep(_delay);
                     ReplicationFactorDelegate rf_del = new ReplicationFactorDelegate(ReplicationFactor);
                     var rf_workTask = Task.Run(() => rf_del.Invoke(args[0]));
                     break;
@@ -440,8 +444,6 @@ namespace PuppetMaster
                 case "Partition":
                     PartitionDelegate p_del = new PartitionDelegate(Partition);
                     var p_workTask = Task.Run(() => p_del.Invoke(args));
-                    // Give the servers time to stabilize after a new partition, since it is given after the server has been initiated (alowed by the professors)
-                    Thread.Sleep(_delay);
                     break;
 
                 case "Client":
