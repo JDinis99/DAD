@@ -1,4 +1,5 @@
 ReplicationFactor 3
+ReplicationFactor 3
 Partition 3 p1 s1 s2 s3
 Server s1 https://localhost:5001 0 0
 Server s2 https://localhost:5002 0 0
@@ -8,15 +9,7 @@ Server s5 https://localhost:5005 0 0
 Server s6 https://localhost:5006 0 0
 Wait 5000
 Client c1 https://localhost:8001 ImmortalPartitionScripts/immortal_partition_client1.txt
-Wait 1000
-Crash s1
-Wait 2000
-Client c2 https://localhost:8002 ImmortalPartitionScripts/immortal_partition_client2.txt
-Wait 1000
+Wait 3000
 Crash s2
-Wait 2000
-Client c3 https://localhost:8003 ImmortalPartitionScripts/immortal_partition_client3.txt
 Wait 1000
-Crash s3
-Wait 2000
-Client c4 https://localhost:8004 ImmortalPartitionScripts/immortal_partition_client4.txt
+Client c2 https://localhost:8002 ImmortalPartitionScripts/immortal_partition_client2.txt

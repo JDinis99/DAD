@@ -248,10 +248,12 @@ namespace PuppetMaster
         {
             try
             {
+                /*
                 _channels.Remove(serverId);
                 _puppetServerClients.Remove(serverId);
                 _no_of_servers -= 1;
                 _no_of_servers_from_script -= 1;
+                */
                 var reply = _puppetServerClients[serverId].CrashServer(new CrashRequest { });
                 if (reply.Ack.Equals("Unsuccess"))
                 {
@@ -260,9 +262,9 @@ namespace PuppetMaster
             }
             catch (Exception)
             {
-                _serverUrls.Remove(serverId);
+                /*_serverUrls.Remove(serverId);
                 _channels.Remove(serverId);
-                _puppetServerClients.Remove(serverId);
+                _puppetServerClients.Remove(serverId);*/
                 WriteToLogger("Server with id " + serverId + " couldn't be reached - either it successfully crashed or it doesn't exist." + Environment.NewLine);
             }
             WriteToLogger(Environment.NewLine);

@@ -546,6 +546,7 @@ namespace GigaStore
                 // Check for all partitions current server is master off
                 foreach (KeyValuePair<String, String> partitions in _master )
                 {
+                    Console.WriteLine("ANALYSING partition: " + partitions.Value);
                     if (partitions.Value != ServerId)
                     {
                         continue;
@@ -554,6 +555,7 @@ namespace GigaStore
                     
                     foreach(KeyValuePair<string, PropagateClient> server in _clients )
                     {
+                        Console.WriteLine("COUNT: " + _servers[partitions.Key].Count + " REPLICATION FACTOR - 1 " + (_replicationFactor - 1));
                         if (_servers[partitions.Key].Count < _replicationFactor - 1)
                         {
 
@@ -685,6 +687,7 @@ namespace GigaStore
 
         public void ChangeReplicationFactor(int factor)
         {
+            Console.WriteLine("CHANGING REPLICATION FACTOR TO: " + factor);
             _replicationFactor = factor;
         }
 
